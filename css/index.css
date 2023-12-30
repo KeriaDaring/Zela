@@ -6,6 +6,7 @@ html {
 }
 
 body {
+    background-image: linear-gradient(to top, rgba(255, 241, 235, 0.5) 0%, rgba(172, 224, 249, 0.5) 100%);
     -webkit-user-select: none;
     user-select: none;
     display: flex;
@@ -16,29 +17,20 @@ body {
 
 
 #sidebar {
-    /* background-color: red; */
+     /*background-color: red;*/
     flex: 1;
 }
-#sidebar>div {
-    margin-right: 8px;
-}
+
 
 #show_pane {
+    padding-left: 5px;
     display: flex;
     flex-direction: column;
     /* background-color: black; */
-    flex: 3;
+    flex: 20;
 }
 
-nav {
-    flex: 1;
-    width: 100%;
-    /* background-color: blue; */
-}
 
-main {
-    flex: 17;
-}
 
 #control {
     text-align: center;
@@ -62,9 +54,9 @@ main {
     height: 33px;
 }
 
-input {
+#search input {
     display: flex;
-    width: 255px;
+    /* width: 255px; */
     padding: 7px 6px;
     padding-left: 32px;
     flex-direction: column;
@@ -90,14 +82,37 @@ input::placeholder {
     background-color: rgba(255, 255, 255, 0.2);
     /* background-color: blue; */
     height: 470px;
+
+    border-radius: 16px;
+    /*background: url(<path-to-image>), lightgray 50% / cover no-repeat, rgba(255, 255, 255, 0.40);*/
+    /*background-blend-mode: soft-light, normal;*/
+    /*box-shadow: 0px 40px 80px 0px rgba(0, 0, 0, 0.10),*/
+    /*            0px 4px 26px 0px rgba(255, 255, 255, 0.02) inset,*/
+    /*            0px 4px 2px 0px rgba(255, 255, 255, 0.15) inset,*/
+    /*            0px -4px 2px 0px rgba(0, 0, 0, 0.05) inset;*/
+    /*backdrop-filter: blur(40px);*/
 }
 
 
 #msg {
+    display: flex;
     padding: 9.152px;
-    height: 150px;
-    border-radius: 10px;
+    height: 145px;
+    border-radius: 16px;
     background-color: rgba(255, 255, 255, 0.2);
+    /*background-blend-mode: soft-light, normal;*/
+    /*box-shadow: 0px 40px 80px 0px rgba(0, 0, 0, 0.10), 0px 4px 26px 0px rgba(255, 255, 255, 0.02) inset, 0px 4px 2px 0px rgba(255, 255, 255, 0.15) inset, 0px -4px 2px 0px rgba(0, 0, 0, 0.1) inset;*/
+}
+
+#device {
+    display: grid;
+    justify-content: space-evenly;
+    height: 150px;
+    text-align: left;
+    flex: 1;
+}
+#circle {
+    flex: 1;
 }
 
 #pane {
@@ -123,7 +138,7 @@ input::placeholder {
 .title>span {
     line-height: 20px;
     cursor: default;
-    color: gray;
+    color: rgb(128, 128, 128);
     font-size: 11px;
 }
 
@@ -142,24 +157,185 @@ input::placeholder {
     fill: black;
 }
 
+.fold {
+    padding-left: 5px;
+}
 
 .rotate {
     transform: rotate(90deg);
 }
 
-.item {
+.block {
+    .item {
+        display: flex;
+        /*justify-content: first baseline;*/
+        cursor: default;
+        padding: 5px 0;
+        font-size: 14px;
+        /* background-color: red; */
+    }
+    .text {
+        padding-left: 6px;
+        height: 20px;
+        line-height: 25px;
+    }
+}
+
+#file_pane {
+    /*background-color: red;*/
     display: flex;
-    justify-content:first baseline;
+    flex-wrap: wrap;
+    user-select: none;
+    .item {
+        /*background-color: blue;*/
+        user-select: none;
+        touch-action: none;
+        cursor: move;
+        flex: 1;
+        transform: translate(0, 0);
+        text-align: center;
+        max-width: 80px;
+        width: fit-content;
+        margin: 5px;
+        max-height: 80px;
+        padding-bottom: 5px;
+    }
+    .item img {
+        width: 70px;
+        margin: 15px 0 0 0;
+        user-select: none;
+    }
+    .text {
+        font-size: 12px;
+        color: white;
+        /*background-color: green;*/
+        text-overflow: ellipsis;
+        overflow: hidden;
+        /*width: 50px;*/
+        cursor: default;
+        text-align: center;
+        margin: 0 20px;
+    }
+}
+
+.select {
+    background-color: rgba(173, 170, 170, 0.3);
+}
+
+
+
+
+
+
+
+nav {
+    /*background-color: black;*/
+    display: flex;
+    width: 99%;
+    justify-content: space-between;
+    border-bottom: 0.03rem solid white;
+    /*background-color: rgba(255, 255, 255, 0.2);*/
+}
+
+#tag_bar {
+    /*flex: 3;*/
+    display: flex;
+    height: fit-content;
+    max-width: 68vw;
+    border-top-right-radius:  16px;
+}
+
+.tag {
+    display: flex;
     cursor: default;
-    padding: 5px 0;
-    font-size: 14px;
-    /* background-color: red; */
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 12px;
+    height: fit-content;
+    padding: 10px 10px 9px 10px ;
+    /*justify-content: center;*/
+    border-top-right-radius:  16px;
+    color: rgba(102, 102, 102, 0.7);
+    /*min-width: 10px;*/
+    /*max-width: 40px;*/
+}
+.tag:hover {
+    border-top-right-radius:  16px;
+    background-color: rgba(101, 101, 101, 0.2);
 }
 
-.text {
-    padding-left: 6px;
-    height: 20px;
-    line-height: 25px;
+.tag:hover img {
+    visibility: visible;
+}
+
+.tag img {
+    /*background-color: black;*/
+    visibility: hidden;
+    padding: 4px;
+    margin-right: 6px;
+}
+.current_page {
+    color: #505b6a;
+    border-top-right-radius:  16px;
+    /*background-blend-mode: soft-light, normal;*/
+    /*box-shadow: 0px 40px 80px 0px rgba(0, 0, 0, 0.10), 0px 4px 26px 0px rgba(255, 255, 255, 0.02) inset, 0px 4px 2px 0px rgba(255, 255, 255, 0.15) inset, 0px -4px 2px 0px rgba(0, 0, 0, 0.05) inset;*/
+    background-color: rgba(255, 255, 255, 0.4);
+}
+.current_page img {
+    visibility: visible;
+}
+.tag img:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+.tag img:hover +.current_page{
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+#file_name {
+    flex: 1;
+    text-align: left;
+    display: flex;
+    width: 65vw;
+    /*background-color: black;*/
+    padding-left: 20px;
+    margin-top: 20px;
+    margin-bottom: 34px;
+    justify-content: space-between;
 }
 
 
+
+#button_area {
+    /*flex: 1;*/
+    /*background-color: red;*/
+    padding-right: 10px;
+    display: flex;
+}
+#button_area>div {
+    padding: 10px;
+    border-radius: 10px;
+    height: fit-content;
+}
+#button_area>div:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+main {
+    flex: 13;
+    display: flex;
+    flex-direction: column;
+    width: 66.2vw;
+    background-color: rgba(255, 255, 255, 0.2);
+    height: 100vh;
+    margin-bottom: 20px;
+    border-radius: 16px;
+}
+
+
+#file_pane {
+    flex: 6;
+    overflow: scroll;
+    height: 45vh;
+    overflow: scroll;
+}
