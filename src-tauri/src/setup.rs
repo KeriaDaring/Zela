@@ -4,6 +4,7 @@ use window_vibrancy::apply_blur;
 /// setup
 pub fn init(app: &mut App) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let win = app.get_window("main").unwrap();
+    win.show().unwrap();
 
     use window_vibrancy::{apply_acrylic, apply_vibrancy, NSVisualEffectMaterial};
     use window_shadows::set_shadow;

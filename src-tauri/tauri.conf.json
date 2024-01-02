@@ -66,12 +66,14 @@
         "title": "",
         "fileDropEnabled": true,
         "transparent": true,
+        "visible": false,
         "fullscreen": false,
         "center": true,
         "height": 788,
         "width": 849,
         "resizable": false,
-        "titleBarStyle": "Overlay"
+        "titleBarStyle": "Overlay",
+        "decorations": false
       }
     ]
   }
