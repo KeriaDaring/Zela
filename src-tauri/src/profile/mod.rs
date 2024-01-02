@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::from_str;
 use std::process::Command;
 #[derive(Debug, Deserialize, Serialize)]
+use std::env;
 pub struct Profile {
     name: String,
     ui_stage: Vec<i32>,
