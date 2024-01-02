@@ -2,6 +2,7 @@ use crate::file::File;
 use std::{env, fs, vec};
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::process::Command;
 use std::time::SystemTime;
 use chrono::{Utc, DateTime};
 use rayon::prelude::*;

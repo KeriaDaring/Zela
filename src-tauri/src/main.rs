@@ -61,7 +61,7 @@ fn _move(path1: String , path2: String) {
 
     #[cfg(target_os = "windows")]
     Command::new("cmd")
-        .args(["/C", "move", source, destination])
+        .args(["/C", "move", path1.as_str(), path2.as_str()])
         .status()
         .expect("Failed to move file.");
 
@@ -117,10 +117,10 @@ fn test() -> Vec<String> {
 
 #[tauri::command]
 fn open(path:String) {
-    let file_path = OsString::from(path);
+    let file_path = OsString::from(path.clone());
     #[cfg(target_os = "windows")]
     Command::new("cmd")
-        .args(["/C", "start", "", file_path])
+        .args(["/C", "start", "", path.as_str()])
         .spawn()
         .expect("Failed to open file.");
 

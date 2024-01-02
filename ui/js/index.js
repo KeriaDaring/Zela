@@ -100,7 +100,7 @@ access("/Users/keria/Desktop");
 function push(path, name) {
     return path + sep + name;
 }
-const sep = isWindows() ? '\\' : '/';
+const sep = "/";
 
 function item(msg) {
     current_file_msg.push(msg);
