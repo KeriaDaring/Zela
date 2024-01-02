@@ -16,16 +16,16 @@ pub fn init(app: &mut App) -> std::result::Result<(), Box<dyn std::error::Error>
         win.set_decorations(true).unwrap();
         apply_vibrancy(&win, NSVisualEffectMaterial::HudWindow, Some(NSVisualEffectState::Active), None)
                 .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+
+        win.set_titlebarstyle("Overlay").unwrap();
     }
 
     #[cfg(target_os = "windows")]
     {
         apply_acrylic(&win, Some((18, 18, 18, 125))).expect("Unsupported platform! 'apply_blur' is only supported on Windows");
-
+        win.set_decorations(true).unwrap();
     }
-    set_shadow(&win, true).unwrap();
+    
 
-    #[cfg(target_os = "windows")]
-    win.set_decorations(true).set_titlebarstyle("Overlay").unwrap();
     Ok(())
 }
