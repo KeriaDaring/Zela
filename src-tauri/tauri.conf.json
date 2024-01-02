@@ -100,7 +100,6 @@
         "title": "",
         "fileDropEnabled": true,
         "transparent": true,
-        "visible": false,
         "fullscreen": false,
         "center": true,
         "height": 788,
