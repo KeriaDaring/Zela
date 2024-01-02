@@ -26,6 +26,6 @@ pub fn init(app: &mut App) -> std::result::Result<(), Box<dyn std::error::Error>
     set_shadow(&win, true).unwrap();
 
     #[cfg(target_os = "windows")]
-    win.set_decorations(true).unwrap();
+    win.set_decorations(true).set_titlebarstyle("Overlay").unwrap();
     Ok(())
 }
