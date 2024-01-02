@@ -1,5 +1,3 @@
-
-
 $(document).ready(function () {
     $(".arrow_row").click(function () {
         $(this)
@@ -11,7 +9,7 @@ $(document).ready(function () {
         } else {
             $(items).slideUp(200);
         }
-        let id = $(this).id.toString().split("_").pop();
+        let id = $(this).id
 
         let num = parseInt(id);
         change(num);
@@ -38,14 +36,17 @@ $(document).ready(function () {
         $(this).toggleClass("select");
     })
 
-    $("#file_pane .item").dblclick( function () {
-
-    })
+    // $("#file_pane .item").dbclick(function () {
+    //
+    // })
 
 });
 
 
 const invoke = window.__TAURI__.invoke;
+// import {appWindow} from "@tauri-apps/api/window";
+
+
 
 
 async function test() {
@@ -58,7 +59,6 @@ async function test() {
 async function read_ui() {
     let list = [];
     invoke("read_ui").then((result) => {
-
         for (let i = 0; i < 4 ; i++) {
             if ((Number)(result[i]) === 1) {
                 let name = "#button_" + i;
