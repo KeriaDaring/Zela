@@ -2,8 +2,8 @@
   "build": {
     "beforeBuildCommand": "",
     "beforeDevCommand": "",
-    "devPath": "/Users/keria/Desktop/Zela",
-    "distDir": "/Users/keria/Desktop/Zela",
+    "devPath": "/Users/keria/Zela",
+    "distDir": "/Users/keria/Zela",
     "withGlobalTauri": true
   },
   "package": {
@@ -14,6 +14,9 @@
     "macOSPrivateApi": true,
     "allowlist": {
       "all": false,
+      "path": {
+        "all": true
+      },
       "window": {
         "startDragging": true
       }

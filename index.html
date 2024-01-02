@@ -4,165 +4,147 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="./css/index.css">
-<!--    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>-->
-    <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
 
+    <link rel="stylesheet" href="./css/index.css">
+    <script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
 </head>
 <body data-tauri-drag-region>
-    <div id="sidebar">
-        <div data-tauri-drag-region id="top">
-            <div id="control">
-                <div class="arrow">←</div>
-                <div class="arrow">→</div>
-            </div>
-            <div id="search">
-                <input type="text" placeholder="Search">
-            </div>
+<div id="sidebar">
+    <div data-tauri-drag-region id="top">
+        <div id="control">
+            <div class="arrow">←</div>
+            <div class="arrow">→</div>
         </div>
-        
-        <div id="pane" style="margin-top: 20px;">
-            <div id="disk">
-                <div class="block">
-                    <div class="title">
-                        <span>Quick Tile</span>
-                        <img class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
-                    </div>
-                    <div class="fold">
-                        <div class="items"> 
-                            <div class="item">
-                                <img src="./imgs/home.svg" alt="">
-                                <div class="text"><span>Home</span></div>
-                            </div>
-                        </div>
-                        <div class="items"> 
-                            <div class="item">
-                                <img src="./imgs/home.svg" alt="">
-                                <div class="text"><span>Macintosh HD</span></div>
-                            </div>
-                        </div>
-                        <div class="items"> 
-                            <div class="item">
-                                <img src="./imgs/home.svg" alt="">
-                                <div class="text"><span>Home</span></div>
-                            </div>
-                        </div>
-                        <div class="items"> 
-                            <div class="item">
-                                <img src="./imgs/home.svg" alt="">
-                                <div class="text"><span>Home</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>     
-                <div class="block">
-                    <div class="title">
-                        <span>Location</span>
-                        <img class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
-                    </div>
-                    <div class="fold">
-                        <div class="items"> 
-                            <div class="item">
-                                <img src="./imgs/Profile.svg" alt="">
-                                <div class="text"><span>User</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>     
-                 
-            </div>
-            <div id="msg">
+        <div id="search">
+            <input type="text" placeholder="Search">
+        </div>
+    </div>
 
+    <div id="pane" style="margin-top: 20px;">
+        <div id="disk">
+            <div class="block">
+                <div class="title">
+                    <span>Quick Tile</span>
+                    <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold">
+                    <div class="item press">
+                        <img src="./imgs/home.svg" alt="">
+                        <div class="text"><span>Home</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="block">
+                <div class="title">
+                    <span>Location</span>
+                    <img id="button_2" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold">
+                        <div class="item">
+                            <img src="./imgs/Profile.svg" alt="">
+                            <div class="text"><span>User</span></div>
+                        </div>
+                </div>
+            </div>
+
+        </div>
+        <div id="msg">
+
+        </div>
+    </div>
+</div>
+<div id="show_pane">
+    <div data-tauri-drag-region id="file_name">
+        <div>
+            <span>name</span>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">/Library</li>
+                </ol>
+        </div>
+        <div id="button_area">
+            <div>
+                你
+            </div>
+            <div>
+                你
+            </div>
+            <div class="button press" id="button_3">
+                你
+            </div>
+            <div class="button" id="button_4">
+                你
             </div>
         </div>
     </div>
-    <div id="show_pane">
-        <div data-tauri-drag-region id="file_name">
-            name
-            <div id="button_area">
-                <div>
-                    你
+
+
+    <main>
+        <nav data-tauri-drag-region>
+            <div id="tag_bar">
+                <div class="tag current_page">
+                    <img src="imgs/cancel.svg" alt="">
+                    <div>这是一个测试标签</div>
                 </div>
-                <div>
-                    你
+                <div class="tag">
+                    <img src="imgs/cancel.svg">这是一个测试标签
                 </div>
-                <div>
-                    你
-                </div>
-                <div>
-                    你
+                <div class="tag">
+                    <img src="imgs/cancel.svg" alt="">这是一个测试标签
                 </div>
             </div>
+        </nav>
+        <div id="file_pane">
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+            <div class="item select">
+                <div><img alt="" src="./imgs/dir.png"></div>
+                <div class="text"><span>Usaasdasda</span></div>
+            </div>
+
+
         </div>
-
-
-
-        <main>
-                <nav data-tauri-drag-region>
-                    <div id="tag_bar">
-                        <div class="tag current_page">
-                            <img src="imgs/cancel.svg"><div>这是一个测试标签</div>
-                        </div>
-                        <div class="tag">
-                            <img src="imgs/cancel.svg">这是一个测试标签
-                        </div>
-                        <div class="tag">
-                            <img src="imgs/cancel.svg">这是一个测试标签
-                        </div>
-                    </div>
-                </nav>
-                <div id="file_pane">
-                    <div    class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Usaasdasda</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-                    <div class="item select draggable">
-                        <div><img src="./imgs/dir.png"></div>
-                        <div class="text"><span>Us</span></div>
-                    </div>
-
-                </div>
-
-        </main>
-
-    </div>
-    <script src="./js/drag.js"></script>
-    <script  src="./js/index.js"></script>
+    </main>
+</div>
+<script src="./js/drag.js"></script>
+<script src="./js/index.js"></script>
 </body>
 </html>
