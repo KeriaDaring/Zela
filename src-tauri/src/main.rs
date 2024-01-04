@@ -17,6 +17,13 @@ use app::process::Process;
 use tokio::task;
 use walkdir::WalkDir;
 use rayon::iter::ParallelIterator;
+use std::sync::Arc;
+use std::thread;
+use winsafe::co::KNOWNFOLDERID;
+use winsafe::{co, SHGetKnownFolderPath};
+
+#[cfg(target_os = "windows")]
+use winres;
 
 
 pub mod setup;
@@ -28,7 +35,7 @@ use file::{File as File1};
 extern crate lazy_static;
 
 lazy_static! {
-    pub static ref PROCESS: Mutex<Process> = Mutex::new(Process::new());
+    pub static ref PROCESS: Arc<Mutex<Process>> = Arc::new(Mutex::new(Process::new()));
 }
 
 
@@ -44,12 +51,15 @@ lazy_static! {
 #[tauri::command]
 fn access(path: Vec<String>) {
     println!("test access{:?}", path);
-    PROCESS.lock().expect("damn").access(path_build(path));
+    let mut pro_arc = Arc::clone(&PROCESS);
+    pro_arc.lock().expect("damn").access(path_build(path));
 }
 
 #[tauri::command]
 fn get_file() -> Option<Vec<String>> {
-    PROCESS.lock().expect("获取文件失败").get_file()
+    let mut pro_arc = Arc::clone(&PROCESS);
+    let a = pro_arc.lock().expect("获取文件失败").get_file();
+    a
 }
 
 #[tauri::command]
@@ -81,7 +91,8 @@ fn _move(path1: Vec<String> , path2: Vec<String>) {
         .status()
         .expect("Failed to move file.");
 
-    PROCESS
+        let mut pro_arc = Arc::clone(&PROCESS);
+    pro_arc
         .lock()
         .expect("移动文件失败")
         ._move(path_build(path1), path_build(path2));
@@ -89,33 +100,38 @@ fn _move(path1: Vec<String> , path2: Vec<String>) {
 
 #[tauri::command]
 fn read_ui() -> Vec<i32>{
-    PROCESS.lock().expect("操作冲突了").read_ui()
+    let mut pro_arc = Arc::clone(&PROCESS);
+    let a = pro_arc.lock().expect("操作冲突了").read_ui();
+    a
 }
 
 #[tauri::command]
 fn delete_file(path: Vec<String>) {
     println!("这是接收到的文件vec{:?}", path);
     fs::remove_file(path_build(path.clone())).expect("删除失败");
-    PROCESS.lock().expect("操作冲突啦").delete(path_build(path));
+    let mut pro_arc = Arc::clone(&PROCESS);
+    pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
 }
 
 #[tauri::command]
 fn delete_dir(path: Vec<String>) {
     println!("这是接收到的文件夹vec{:?}", path);
     fs::remove_dir_all(path_build(path.clone())).expect("递归删除文件夹失败");
-    PROCESS.lock().expect("操作冲突啦").delete(path_build(path));
+    let mut pro_arc = Arc::clone(&PROCESS);
+    pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
 }
 #[tauri::command]
 fn creat(path: Vec<String>, _type: String) {
-    PROCESS.lock().expect("操作冲突啦").creat(path_build(path), _type)
+    let mut pro_arc = Arc::clone(&PROCESS);
+    pro_arc.lock().expect("操作冲突啦").creat(path_build(path), _type);
 }
 
 #[tauri::command]
 fn rename(path: Vec<String>, new_name: Vec<String>) {
     println!("重命名成功了");
-
+    let mut pro_arc = Arc::clone(&PROCESS);
     fs::rename(Path::new(&path_build(path.clone())), Path::new(&path_build(new_name.clone()))).expect("重命名失败");
-    PROCESS.lock().expect("操作冲突啦").rename(path_build(path), path_build(new_name))
+    pro_arc.lock().expect("操作冲突啦").rename(path_build(path), path_build(new_name));
 }
 
 #[tauri::command]
@@ -134,8 +150,14 @@ fn new_file(path: Vec<String>) {
 
 #[tauri::command]
 fn fold(target: usize) {
-    PROCESS.lock().expect("操作冲突了").fold(target - 1)
+    let mut pro_arc = Arc::clone(&PROCESS);
+    pro_arc.lock().expect("操作冲突了").fold(target - 1);
 }
+
+// #[tauri::command]
+// fn get_resent() {
+    
+// }
 
 #[tauri::command]
 fn test() -> Vec<String> {
@@ -183,7 +205,10 @@ fn open(path: Vec<String>) {
 #[tauri::command]
 fn search(target: String) {
     // println!("{:?}", target);
-    PROCESS.lock().expect("damn！ search 失败").search(&target);
+    let task = thread::spawn(move || {
+        let mut pro_arc = Arc::clone(&PROCESS);
+         pro_arc.lock().expect("damn！ search 失败").search(&target);
+        });
 }
 
 fn path_build(list: Vec<String>) -> PathBuf {
@@ -212,7 +237,8 @@ fn path_debuild(path: PathBuf) -> String {
 
 #[tauri::command]
 async fn init_tiles() -> Vec<String> {
-    let list = PROCESS.lock()
+    let pro_arc = Arc::clone(&PROCESS);
+    let list = pro_arc.lock()
         .expect("初始化磁贴")
         .init_tiles()
         .into_iter()
@@ -225,12 +251,24 @@ async fn init_tiles() -> Vec<String> {
 
 #[tauri::command]
 async fn add_tiles(path: Vec<String>) {
-    PROCESS.lock().expect("添加磁铁失败").add_tiles(path_build(path))
+    let pro_arc = Arc::clone(&PROCESS);
+    let list = thread::spawn(move || {
+     pro_arc
+     .lock()
+     .expect("添加磁铁失败")
+     .add_tiles(path_build(path));
+    });
 }
 
 #[tauri::command]
 async fn remove_tiles(target: usize) {
-    PROCESS.lock().expect("删除磁贴失败").remove_tiles(target);
+    let pro_arc = Arc::clone(&PROCESS);
+    let list = thread::spawn(move || {
+        pro_arc
+        .lock()
+        .expect("删除磁贴失败")
+        .remove_tiles(target);
+    });
 }
 
 pub async fn init_index() {
@@ -283,6 +321,38 @@ pub async fn init_index() {
 }
 // #[tokio::main]
 fn main() {
+    use std::io::Write;
+// // only build the resource for release builds
+// // as calling rc.exe might be slow
+//     #[cfg(target_os = "windows")] {
+//     if std::env::var ("PROFILE").unwrap() == "release" {
+//         let mut res = winres::WindowsResource::new();
+//         res.set_icon("resources\\ico\\fiscalidade_server.ico")
+//         .set_manifest(
+//             r#"'
+// <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+// <trustIno xmlns="urn:schemas-microsoft-com: asm.v3">
+// ‹security>
+// ‹requestedPrivileges>
+// <requestedExecutionLevel level="requireAdministrator" uiAccess="
+// </requestedPrivileges>
+// </security>
+// </trustInfo>
+// </assembly>
+// "#,
+//         );
+//         match res.compile() {
+//             Err(error) => {
+//                 write!(std::io::stderr(), "{}", error).unwrap();
+//                 std::process::exit (1);
+//             }
+//             Ok(_) => {
+
+//             }
+//         }
+//     }
+// }
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![rename, new_file, new_dir, delete_file, delete_dir, init_tiles, add_tiles, remove_tiles, search, test, read_ui, fold, access, _move, open, creat, copy, get_file])
         .setup(setup::init)
@@ -293,4 +363,22 @@ fn main() {
 }
 
 
+
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_resent() {
+        // let mut pro_arc = Arc::clone(&PROCESS);
+        let docs_folder = SHGetKnownFolderPath(
+            &co::KNOWNFOLDERID::Recent,
+            co::KF::DEFAULT,
+            None,
+        ).unwrap();
+    println!("{}", docs_folder);
+    for path in WalkDir::new(docs_folder) {
+        println!("{}", path.unwrap().path().display())
+    }
+    }
+}
 

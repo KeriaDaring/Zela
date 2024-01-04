@@ -11,7 +11,7 @@ document.onkeydown = function () {
 }
 
 document.oncontextmenu = function (e) {
-    // e.preventDefault();
+    e.preventDefault();
 
     let target = e.target.closest("div");
     if (!target) return;
@@ -59,11 +59,28 @@ $(document).ready(function () {
         let str = document.getElementById("search_input").value;
         if (!str) return;
         console.log(str.toString())
+            
+
+        if (!$("#fun1").hasClass("press")) {
+            await access(process_path(str)).then(async r =>
+                await add_process()
+            );     
+            return;
+        }
+        else {
+            await invoke("search", {target: str}).then(async () => {
+
+                await invoke("get_file").then(async () => {
+                    await add_process();
+                });
+            })
+        }
         // if (window.Worker) console.log("yes")
 
-        myWorker.postMessage(str); // 发送
-        console.log("发送成功");
-        $("#file_pane").html("");
+
+        // myWorker.postMessage(str); // 发送
+        // console.log("发送成功");
+        // $("#file_pane").html("");
 
         // myWorker.terminate();
     })
@@ -94,11 +111,20 @@ $(document).ready(function () {
     //     $(".fold .press").toggleClass("press");
     //     $(this).toggleClass("press")
     // })
-    $(".button").click(function () {
-        $("#button_area .press").toggleClass("press");
-        $(this).toggleClass("press");
-        let num = parseInt($(this).id.split("_").pop());
-        change(num);
+    // $(".button").click(function () {
+    //     $(".press").find().toggleClass("press");
+    //     $(this).toggleClass("press");
+    //     let num = parseInt($(this).id.split("_").pop());
+    //     change(num);
+    // })
+    // $(".button1").click(function () {
+    //     $(".button1 .press").toggleClass("press");
+    //     $(this).toggleClass("press");
+    // })
+    $(".button_block").click(function(e) {
+        let target = e.target.closest(".button");
+        $(this).find(".press").toggleClass("press");
+        $(target).toggleClass("press");
     })
     // $("#file_pane .item").click(function () {
     //     $(".select").toggleClass("select");
@@ -267,9 +293,9 @@ $(document).ready(function () {
         let type = path[2];
         console.log(path);
         if (type === "Folder")
-            invoke("delete_dir", {path:path})
+            await invoke("delete_dir", {path:path})
         else {
-            invoke("delete_file", {path: path});
+            await invoke("delete_file", {path: path});
         }
         await access(process_path(borad_msg.slice()[1])).then(async r =>
             await add_process()
@@ -309,8 +335,6 @@ $(document).ready(function () {
         $(".select")
             .find(".item_name").append(elem)
     })
-
-
 
 
 });
@@ -413,7 +437,7 @@ async function access(path) {
     console.log("这是名称" + name);
     check_control();
     // current_file_msg = [];
-    $("#file_name").text(name)
+    $("#file_name").find(".name").text(name)
     $("#name").text(name)
     // borad_msg = await invoke("get_file");
     // update_msg_current()

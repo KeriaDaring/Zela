@@ -315,7 +315,9 @@ impl FileSystem {
     pub async fn init_index(&self) {
         self.scan_all().await;
     }
+
 }
+
 
 fn transform(doc: &Document, field: Vec<Field>) -> Vec<String>{
     let mut list: Vec<String> = Vec::new();
@@ -440,6 +442,7 @@ mod test {
             }
         }
     }
+    
 
 
     // #[test]

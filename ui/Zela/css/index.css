@@ -32,6 +32,7 @@ body {
     display: flex;
     flex-direction: column;
     /* background-color: black; */
+    /* height: 100vh; */
     flex: 20;
 }
 
@@ -214,6 +215,7 @@ input::placeholder {
     user-select: none;
     overflow-y: scroll;
     overflow-x: hidden;
+    /* height: 10vh; */
     align-content: flex-start;
     /*align-items: flex-start;*/
     .item {
@@ -284,6 +286,7 @@ main nav {
     display: flex;
     flex-direction: column;
     gap: 7px;
+    max-width: 40px;
 }
 
 
@@ -358,31 +361,51 @@ main nav {
     flex: 1;
     text-align: left;
     display: flex;
-    width: 65vw;
+    width: fit-content;
+    
     /*background-color: black;*/
     padding-left: 20px;
     margin-top: 20px;
     /*margin-bottom: 34px;*/
     justify-content: space-between;
+    /* background-color: red; */
+    text-overflow: ellipsis;
+    /* overflow: hidden; */
+    white-space: nowrap;
+    /* max-width: 80px; */
 }
 #name {
     color: #d9d9d9;
+    text-align: right;
+    background-color: red;
 }
 
+.pane1 {
+    display: flex;
+    gap: 10px;
+}
 
 
 #button_area {
-    /*flex: 1;*/
-    /*background-color: red;*/
-    padding-right: 10px;
+    /* flex: 10; */
+    /* background-color: blue; */
+    /* padding-right: 10px; */
     display: flex;
+    margin-left: 150px;
 }
-#button_area>div {
+
+.button_block {
+    margin: 0 20px;
+    display: flex;
+    gap: 30px;
+}
+
+.button {
+    border-radius: 20px;
     padding: 10px;
-    border-radius: 10px;
-    height: fit-content;
 }
-#button_area>div:hover {
+
+.button:hover {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -450,8 +473,6 @@ main {
 #contextMenu4 {
     visibility: hidden;
 }
-
-.input {
-
+#contextMenu5 {
+    visibility: hidden;
 }
-

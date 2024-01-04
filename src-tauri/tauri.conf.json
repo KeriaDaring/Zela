@@ -2,8 +2,8 @@
   "build": {
     "beforeBuildCommand": "",
     "beforeDevCommand": "",
-    "devPath": "../ui",
-    "distDir": "../ui",
+    "devPath": "../ui/Zela",
+    "distDir": "../ui/Zela",
     "withGlobalTauri": true
   },
   "package": {
@@ -71,7 +71,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "com.tauri.Zela",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -81,7 +81,6 @@
         "signingIdentity": null
       },
       "resources": [
-        "../ui"
       ],
       "shortDescription": "",
       "targets": "all",
