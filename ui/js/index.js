@@ -1,3 +1,5 @@
+const isWindows = window.__TAURI__.windows;
+
 document.onkeydown = function () {
     if (window.event && window.event.keyCode == 123) {
         event.keyCode = 0;
@@ -109,7 +111,7 @@ $(document).ready(function () {
     //     access(path);
     //     add_process();
     // })
-    $("#file_pane ").click(function (e) {
+    $("#file_pane").click(function (e) {
         let target = e.target.closest(".file_title");
         $(".select").toggleClass("select");
          $(target).toggleClass("select");
@@ -129,22 +131,43 @@ $(document).ready(function () {
         }
     })
 
-    function bread_change(path) {
+    $("#file_pane").bind("keypress", async function (e) {
+        if (e.keyCode == "13") {
+            console.log("回车")
+            let val = $('#input').val();
+            console.log(val)
+            $("#input").closest(".item_name")
+                .text(val.slice());
+            let span = $("#input").closest(".item_name")
+            $(span).text(val);
+            let id = $(".select").prop("id");
+            let msg = current_file_msg[id - 1];
+            console.log(msg[1] + "   " + val)
+            let des = process_path(msg[1]);
+            des.pop();
+            des.push(val);
+            // let a = des.split(",").pop().push(val);
+            // console.log(des + "  final")
+            invoke("rename", {path: process_path(msg[1]), newName: des})
+        }
+    })
 
-    }
 
-    function creat_breadcomp(name) {
-        let comp = document.createElement("li");
-        $(comp).html("<li class=\"breadcrumb-item\"><a href=\"#\">Home</a></li>");
-
-    }
 
     $("#file_pane").dblclick(async function (e) {
-        let target = e.target.closest(".item");
+        let target = e.target.closest(".file_title");
         next_path = [];
         let id = target.id;
         console.log(id);
         let msg = current_file_msg[id - 1].slice();
+
+        //msg
+        //name
+        //path
+        //type
+        //time1
+        //time2
+        //size
         borad_msg = [];
         borad_msg = msg.slice();
         let path = msg[1].slice();
@@ -159,8 +182,7 @@ $(document).ready(function () {
             current_file_msg = [];
             await add_process();
         })
-        bread_change(pre_path[pre_path - 1]);
-
+        $(".breadcrumb").append(creat_breadcomp(msg[0].slice()));
     })
 
     $("#pre").click(async function () {
@@ -188,14 +210,22 @@ $(document).ready(function () {
         $(target).toggleClass("press")
         let id = target.id;
         let index = id.split("_").pop();
-        let path = tile_path[index + 1];
+        let path = tile_path[index];
+
+        for (let i = 1; i <= 6; i++) {
+            let name = "#msg_mini" + i;
+            $(name).text("")
+        }
+
         console.log(path)
-        let path1 = process_path(path[0]);
+        console.log(tile_path)
+        let path1 = process_path(path.slice());
 
         await access(path1).then(async () => await add_process())
         next_path = []
-        pre_path = pre_path.slice(0, 1);
+        pre_path = [[path.slice()]];
         check_control();
+        update_msg_current()
     })
 
     $(".open").click(async function () {
@@ -204,7 +234,7 @@ $(document).ready(function () {
         let msg = current_file_msg[index - 1];
         console.log(msg)
         let path = msg[1];
-        if (msg[2] !== "dir") {
+        if (msg[2] !== "Folder") {
             invoke("open", {path: process_path(path)})
             return
         }
@@ -234,10 +264,10 @@ $(document).ready(function () {
     $(".delete").click(async function () {
         let index = document.querySelector(".select").id;
         let path = process_path(current_file_msg[index - 1].slice()[1]);
-        let type = path[2].slice();
+        let type = path[2];
         console.log(path);
         if (type === "Folder")
-            invoke("delete_dir_all", {path:path})
+            invoke("delete_dir", {path:path})
         else {
             invoke("delete_file", {path: path});
         }
@@ -246,9 +276,43 @@ $(document).ready(function () {
         );
     })
 
-    $("#rename").click(function (e) {
-        let target = e.target.closest(".file");
+    $("#new_file").click(async function (e) {
+        let a = pre_path[pre_path.length - 1].slice();
+        a.push("新建文件");
+        console.log(a)
+        await invoke("new_file", {path: a}).then(async () => {
+            await refresh()
+        });
     })
+    $("#new_dir").click(async function (e) {
+        let a =  pre_path[pre_path.length - 1].slice();
+        a.push("新建文件夹");
+        console.log(a)
+        await invoke("new_dir", {path: a}).then(async () => {
+            await refresh()
+        })
+        ;
+    })
+
+    $("#rename").click(function (e) {
+        // let target = e.target.closest(".file_title");
+        let elem = document.createElement("input");
+        let name = $(".select").find(".item_name").text();
+        $(elem)
+            .html("<input  value=\"\">")
+            .prop("value", name)
+            .prop("id", "input");
+        console.log("创建成功")
+        $(".select")
+            .find(".item_name").text("")
+
+        $(".select")
+            .find(".item_name").append(elem)
+    })
+
+
+
+
 });
 
 function check_control() {
@@ -264,6 +328,12 @@ function check_control() {
     }
 }
 
+async function refresh() {
+    await access(pre_path[pre_path.length - 1]).then(async r =>
+        await add_process()
+    );
+}
+
 
 const invoke = window.__TAURI__.invoke;
 // import {appWindow} from "@tauri-apps/api/window";
@@ -272,6 +342,11 @@ const invoke = window.__TAURI__.invoke;
 // console.log(sep)
 
 function process_path(str) {
+    console.log("原始 " + str)
+    if (!isWindows) {
+
+        return str.split("\u005C");
+    }
     return str.split("/").join().split("\\").join().split(",");
 }
 
@@ -297,45 +372,64 @@ async function read_ui() {
     })
     console.log("初始化tile")
     let list = await init_tiles();
+    console.log(list)
+    console.log("____________")
     $(".location>div").text("");
     for (let i of list) {
         // console.log(i)
+        console.log("yes")
         $(".location").append(creat_tile(i));
     }
+    // let index = 0;
+    // $(".tile_name").forEach((n) => {
+    //     console.log("初始化名称" + tile_path)
+    //     $(n).text(tile_path[index++ + 1].slice())
+    // })
 }
 
 function creat_tile(msg) {
-    // console.log(msg);
+    // console.log("this  " +msg);
     let tile = document.createElement("div");
     let id = "tile_" + tile_path.length;
     $(tile).html("<div class=\"item press tile\">\n" +
         "                        <img src=\"./imgs/home.svg\" alt=\"\">\n" +
-        "                        <div class=\"text tile\"><span>Home</span></div>\n" +
+        "                        <div class=\"text tile\"><span class='tile_name'>Home</span></div>\n" +
         "                    </div>")
 
     let path_arr = process_path(msg);
     // console.log(path_arr)
-    tile_path = [tile_path, [msg]];
+    tile_path = [...tile_path, msg];
     console.log(tile_path)
-    console.log(tile_path)
-    $(tile).find(".text").text(path_arr[path_arr.length - 1]);
-    $(tile).id = id;
+    console.log("above")
+    $(tile).find(".tile_name").text(msg.slice());
+    $(tile).find(".press").prop("id", id);
     return tile;
 }
 
 async function access(path) {
-    await invoke('access', {path: path});
+    console.log("这是你要访问的路径" + path)
+    await invoke('access', {path: path.slice()});
     let name = path.slice()[path.length - 1].split(".")[0];
+    console.log("这是名称" + name);
     check_control();
     // current_file_msg = [];
-    $("#name").text(name.split(".")[0])
-
+    $("#file_name").text(name)
+    $("#name").text(name)
+    // borad_msg = await invoke("get_file");
+    // update_msg_current()
 
     update_msg_current()
 }
+
 function update_msg_current() {
     for (let i = 1; i <= 6; i++) {
         let text = "#msg_mini" + i;
+        // console.log(borad_msg)
+        if (borad_msg[i - 1] === "无") {
+            $(text).text("无");
+            continue;
+        }
+
         $(text).text(borad_msg[i - 1]);
     }
 }
@@ -388,11 +482,13 @@ borad_msg = []
 copyposition = []
 
 
-pre_path = [["Users"]];
+pre_path = [["C:\\"]];
 next_path = [];
 read_ui();
 init();
 add_process();
+
+$(".tile").firstChild.click()
 
 
 myWorker = new Worker('find.js');
@@ -432,22 +528,21 @@ function item(msg) {
     let item = document.createElement("div");
     item.innerHTML = "<div class=\"item file file_title\">\n" +
         "                <div class='file'><img alt=\"\" src=\"./imgs/dir.png\"></div>\n" +
-        "                <div class=\"text file\"><span></span></div>\n" +
+        "                <div class=\"text file\"><span class='item_name'></span></div>\n" +
         "            </div>";
     $(item).find("img").prop("src", img);
     $(item).find(".item").prop("id", id);
     if (img === `../imgs/file.png`) {
         $(item).find("img").css("width", "40px");
     }
-    $(item).find(".text span").text(msg[0] ? msg[0] : "");
+    $(item).find(".item_name").text(msg[0] ? msg[0] : "");
     return item;
 }
 
 async function add_process() {
     $("#file_pane").html("");
     let times = 0;
-    borad_msg = await invoke("get_file");
-    update_msg_current(borad_msg)
+
     while (1) {
         let list = await invoke("get_file");
         if (!list) times++;

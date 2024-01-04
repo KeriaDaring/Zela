@@ -1,9 +1,11 @@
+use std::env;
 use std::fs::{create_dir, File};
+use std::io::BufRead;
 use std::path::PathBuf;
 use tantivy::Opstamp;
-use tauri::NativeImage::Path;
 use crate::file_system::FileSystem;
 use crate::profile::Profile;
+use std::process::Command;
 
 
 #[derive(Debug)]
@@ -83,9 +85,6 @@ impl Process {
         self.user.print_ui();
     }
 
-    pub fn init_index(&self) {
-        self.fs.init_index();
-    }
     pub fn init_tiles(&self) -> Vec<PathBuf>{
         match self.user.init_tiles() {
             None => {
@@ -104,6 +103,7 @@ impl Process {
     pub fn remove_tiles(&mut self, target: usize) {
         self.user.remove_tiles(target);
     }
+
 
 
 

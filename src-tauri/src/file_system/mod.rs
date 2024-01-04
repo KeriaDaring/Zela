@@ -14,6 +14,7 @@ use tantivy::collector::TopDocs;
 use tantivy::query::RegexQuery;
 use tantivy::schema::{Field, Schema, STORED, TEXT, Value};
 use crate::document1::Document1;
+use std::process::Command;
 
 
 #[derive(Debug)]
@@ -88,6 +89,7 @@ impl FileSystem {
             home: init_home(),
             queue: VecDeque::new(),
         };
+
         // if fs::metadata(&flag_file_path).is_ok() {
             fs
         // } else {
@@ -144,6 +146,7 @@ impl FileSystem {
         self.clear_queue();
         self.stage = Stage::Doing;
         WalkDir::new(name.clone())
+            .min_depth(1)
             .max_depth(1)
             .into_iter()
             // .par_bridge()
@@ -181,7 +184,7 @@ impl FileSystem {
     fn clear_queue(&mut self) {
         self.queue.clear();
     }
-    pub fn scan_all(&self) {
+    pub async fn scan_all(&self) {
         Index::create_in_dir("index", {
             let mut schema_builder = Schema::builder();
             schema_builder.add_text_field("name", TEXT | STORED);
@@ -193,6 +196,7 @@ impl FileSystem {
             let schema = schema_builder.build();
             schema
         }).expect("index 创建失败");
+
         for i in &self.home {
             WalkDir::new(i)
                 .max_depth(8)
@@ -308,8 +312,8 @@ impl FileSystem {
     //     container.to_str().unwrap().to_string()
     // }
 
-    pub fn init_index(&self) {
-        self.scan_all();
+    pub async fn init_index(&self) {
+        self.scan_all().await;
     }
 }
 

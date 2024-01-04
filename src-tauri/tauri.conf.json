@@ -80,7 +80,9 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": [
+        "../ui"
+      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {
@@ -106,7 +108,7 @@
         "width": 849,
         "resizable": false,
         "titleBarStyle": "Overlay",
-        "decorations": true
+        "decorations": false
       }
     ]
   }

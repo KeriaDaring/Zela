@@ -50,7 +50,7 @@ impl File {
     pub fn get_msg<'a>(&self) -> Result<FileInfo, (String, String, String)> {
         let path: &Path = self.entry.path();
         let name: &OsStr = path.file_name().ok_or("No filename").unwrap();
-        let name = name.to_str().expect("name 转换失败").to_string();
+        let mut name = name.to_str().expect("name 转换失败").to_string();
         let path1 = path.as_os_str().to_str().unwrap().to_string();
         let binding = name.as_str().to_string();
         let mut list: Vec<_> = binding.split(".").collect();
@@ -84,6 +84,9 @@ impl File {
         let time = SystemTime::now() - Duration::from_secs(last_modified.clone());
         let modify = self.format_time(time);
 
+        if name.eq("no") {
+            name = path1.clone();
+        }
 
         Ok(FileInfo {
             name,
@@ -101,7 +104,20 @@ impl File {
 
     pub fn msg(&self) -> Vec<String> {
         let path: &Path = self.entry.path();
-        let name: &OsStr = path.file_name().ok_or("No filename").unwrap();
+        let name: &OsStr;
+        #[cfg(target_os = "macos")]
+        {
+            name = path.file_name().ok_or("No filename").unwrap();
+        }
+
+        #[cfg(target_os = "windows")]
+        {
+            name = match path.file_name() {
+                Some(val) => val,
+                None => OsStr::new("no"),
+            };
+        }
+
         let binding = name.to_str().unwrap().to_string();
         let mut list: Vec<_> = binding.split(".").collect();
         let _type = list.pop().expect("获取拓展名错误");
@@ -120,7 +136,7 @@ impl File {
         //     .filter(|metadata| metadata.is_file())
         //     .fold(0, |acc, m| m.len() + acc);
         let _type = if metadata.is_dir() {
-            len = "----".to_string();
+            len = "无".to_string();
             "Folder"
         } else if metadata.is_file() {
             _type
@@ -129,7 +145,7 @@ impl File {
         } else {
             "none"
         }.to_string();
-        let name = name.to_str().expect("name 转换失败").to_string();
+        let mut name = name.to_str().expect("name 转换失败").to_string();
         let creat = metadata.created().expect("获取创建时间失败");
         let creat = self.format_time(creat);
 
@@ -138,6 +154,9 @@ impl File {
         let time = SystemTime::now() - Duration::from_secs(last_modified.clone());
         let modify = self.format_time(time);
         let path = path.as_os_str().to_str().unwrap().to_string();
+        if name.eq("no") {
+            name = path.clone();
+        }
 
         vec![name, path, _type, creat, modify, len.to_string()]
     }

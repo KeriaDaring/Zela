@@ -5,7 +5,7 @@ use serde_json::from_str;
 use std::{env, fs};
 use std::fs::File;
 use std::io::Write;
-use std::os::unix::raw::time_t;
+use std::process::Command;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Profile {
@@ -32,11 +32,14 @@ impl Profile {
             .expect("Failed to execute command");
 
         let output_str = String::from_utf8_lossy(&output.stdout);
-
         for line in output_str.lines() {
             // println!("{}", line.trim());
-            home.push(PathBuf::from(line.trim()));
+            let mut a = PathBuf::from(line.trim().to_owned());
+            a.push(PathBuf::from("\u{005C}"));
+            home.push(a);
         }
+        home.pop();
+        home.remove(0);
     }
 
         let result = Profile {

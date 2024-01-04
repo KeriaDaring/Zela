@@ -3,15 +3,27 @@
     windows_subsystem = "windows"
 )]
 use std::ffi::OsString;
-use std::fs;
+use std::{env, fs, path};
+use std::fs::File;
+use std::io::BufRead;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::Mutex;
 use lazy_static::lazy_static;
 use app::process::Process;
+use tokio::task;
+use walkdir::WalkDir;
+use tantivy::schema::{STORED, TEXT};
+use rayon::iter::ParallelBridge;
+use rayon::iter::ParallelIterator;
+use serde_json::value::Index;
+use tantivy::Index;
+use tantivy::schema::Schema;
 
 
 pub mod setup;
+pub mod file;
+use crate::file::File;
 
 
 #[macro_use]
@@ -33,7 +45,7 @@ lazy_static! {
 
 #[tauri::command]
 fn access(path: Vec<String>) {
-    // println!("{:?}", path);
+    println!("test access{:?}", path);
     PROCESS.lock().expect("damn").access(path_build(path));
 }
 
@@ -61,7 +73,7 @@ fn _move(path1: Vec<String> , path2: Vec<String>) {
 
     #[cfg(target_os = "windows")]
     Command::new("cmd")
-        .args(["/C", "move", path1.as_str(), path2.as_str()])
+    .args(["/C", "move", path_build(path1.clone()).to_str().expect("wrong"), path_build(path2.clone()).to_str().expect("wrong")])
         .status()
         .expect("Failed to move file.");
 
@@ -84,14 +96,14 @@ fn read_ui() -> Vec<i32>{
 
 #[tauri::command]
 fn delete_file(path: Vec<String>) {
-    println!("{:?}", path);
+    println!("这是接收到的文件vec{:?}", path);
     fs::remove_file(path_build(path.clone())).expect("删除失败");
     PROCESS.lock().expect("操作冲突啦").delete(path_build(path));
 }
 
 #[tauri::command]
 fn delete_dir(path: Vec<String>) {
-    println!("{:?}", path);
+    println!("这是接收到的文件夹vec{:?}", path);
     fs::remove_dir_all(path_build(path.clone())).expect("递归删除文件夹失败");
     PROCESS.lock().expect("操作冲突啦").delete(path_build(path));
 }
@@ -102,8 +114,24 @@ fn creat(path: Vec<String>, _type: String) {
 
 #[tauri::command]
 fn rename(path: Vec<String>, new_name: Vec<String>) {
+    println!("重命名成功了");
+
     fs::rename(Path::new(&path_build(path.clone())), Path::new(&path_build(new_name.clone()))).expect("重命名失败");
     PROCESS.lock().expect("操作冲突啦").rename(path_build(path), path_build(new_name))
+}
+
+#[tauri::command]
+fn new_dir(path: Vec<String>) {
+    println!("new dir {:?}", path);
+    fs::create_dir(path_build(path));
+    println!("yes_dir")
+}
+
+#[tauri::command]
+fn new_file(path: Vec<String>) {
+    println!("new file {:?}", path);
+    File::create(path_build(path));
+    println!("yes_file")
 }
 
 #[tauri::command]
@@ -128,7 +156,7 @@ fn open(path: Vec<String>) {
     let file_path = OsString::from(path_build(path.clone()));
     #[cfg(target_os = "windows")]
     Command::new("cmd")
-        .args(["/C", "start", "", path.as_str()])
+        .args(["/C", "start", "", path_build(path.clone()).to_str().expect("wrong")])
         .spawn()
         .expect("Failed to open file.");
 
@@ -161,24 +189,27 @@ fn search(target: String) {
 }
 
 fn path_build(list: Vec<String>) -> PathBuf {
-    let mut path = if cfg!(target_os = "windows") {
-        PathBuf::from("")
-    } else {
-        PathBuf::from("/")
-    };
-    for i in list.iter() {
-        path.push(i);
+    println!("source {:?}", list);
+    let mut path = PathBuf::new();
+    let mut stage = false;
+
+    for i in list {
+        if !stage {
+            path.push(i.clone());
+            if cfg!(target_os = "windows") {
+                path.push("\\");
+            }
+            stage = true;
+            continue
+        }
+        path.push(i.clone());
     }
+    println!("合并完成了 {:?}", path.clone());
     path
 }
 
 fn path_debuild(path: PathBuf) -> String {
     path.to_str().unwrap().to_string()
-}
-
-#[tauri::command]
-async fn init_index() {
-    PROCESS.lock().expect("初始化index").init_index();
 }
 
 #[tauri::command]
@@ -204,14 +235,63 @@ async fn remove_tiles(target: usize) {
     PROCESS.lock().expect("删除磁贴失败").remove_tiles(target);
 }
 
+pub async fn init_index() {
+    let mut home = vec![];
+    #[cfg(target_os = "macos")]
+    home.push(env::home_dir().expect("根目录读取错误"));
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = Command::new("wmic")
+            .args(["logicaldisk", "get", "name"])
+            .output()
+            .expect("Failed to execute command");
+
+        let output_str = String::from_utf8_lossy(&output.stdout);
+
+        for line in output_str.lines() {
+            // println!("{}", line.trim());
+            home.push(PathBuf::from(line.trim()));
+        }
+    }
+    Index::create_in_dir("index", {
+        let mut schema_builder = Schema::builder();
+        schema_builder.add_text_field("name", TEXT | STORED);
+        schema_builder.add_text_field("path", STORED);
+        schema_builder.add_text_field("type", TEXT | STORED);
+        schema_builder.add_text_field("creat", TEXT | STORED);
+        schema_builder.add_text_field("modify", TEXT | STORED);
+        schema_builder.add_text_field("size", STORED);
+        let schema = schema_builder.build();
+        schema
+    }).expect("index 创建失败");
+    for i in home {
+        WalkDir::new(i)
+            .max_depth(8)
+            .into_iter()
+            .par_bridge()
+            .for_each(|entry| {
+                match entry {
+                    Ok(entry) => {
+                        let file = File::from(entry);
+                        file.add_in_sql();
+                    }
+                    Err(err) => eprintln!("Error: {}", err),
+                }
+            });
+    }
 
 
+}
+#[tokio::main]
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![delete_file, delete_dir, init_tiles, add_tiles, remove_tiles, search, test, read_ui, fold, access, _move, open, creat, copy, get_file])
+        .invoke_handler(tauri::generate_handler![rename, new_file, new_dir, delete_file, delete_dir, init_tiles, add_tiles, remove_tiles, search, test, read_ui, fold, access, _move, open, creat, copy, get_file])
         .setup(setup::init)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
+    let scan = task::spawn(init_index());
 }
 
 

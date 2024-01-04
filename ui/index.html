@@ -125,24 +125,24 @@
         <div id="title">
             <div><span id="name">name</span></div>
             <div class="breadcrumb">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item no_active">Home</li>
                 <li class="breadcrumb-item active" aria-current="page">/Library</li>
             </div>
         </div>
-        <div id="button_area">
-            <div>
-                你
-            </div>
-            <div>
-                你
-            </div>
-            <div class="button press" id="button_3">
-                你
-            </div>
-            <div class="button" id="button_4">
-                你
-            </div>
-        </div>
+<!--        <div id="button_area">-->
+<!--            <div>-->
+<!--                你-->
+<!--            </div>-->
+<!--            <div>-->
+<!--                你-->
+<!--            </div>-->
+<!--            <div class="button press" id="button_3">-->
+<!--                你-->
+<!--            </div>-->
+<!--            <div class="button" id="button_4">-->
+<!--                你-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 
 
@@ -162,7 +162,10 @@
             </div>
         </nav>
         <div class="file_area" id="file_pane">
-
+            <div class="item file file_title">
+                <div class='file'><img alt="" src="./imgs/dir.png"></div>
+                <div class="text file"><span><input class="input" value="你好这里是一些值"></span></div>
+            </div>
         </div>
     </main>
 </div>
@@ -173,7 +176,8 @@
     <div class="delete">删除</div>
 </div>
 <div class="menu" id="contextMenu2">
-    <div id="new">新建</div>
+    <div id="new_dir">新建文件夹</div>
+    <div id="new_file">新建文件</div>
     <div id="paste">粘贴</div>
 </div>
 <div class="menu" id="contextMenu3">
@@ -188,7 +192,7 @@
     <div id="rename">重命名</div>
     <div>删除</div>
 </div>
-<script src="./js/drag.js"></script>
+<!--<script src="./js/drag.js"></script>-->
 <script src="./js/index.js"></script>
 </body>
 </html>
