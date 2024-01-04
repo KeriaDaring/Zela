@@ -54,6 +54,11 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "fs": {
+        "removeFile": true,
+        "removeDir": true,
+        "renameFile": true
       }
     },
     "bundle": {
@@ -107,7 +112,7 @@
         "width": 849,
         "resizable": false,
         "titleBarStyle": "Overlay",
-        "decorations": false
+        "decorations": true
       }
     ]
   }

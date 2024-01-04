@@ -1,3 +1,6 @@
+
+const {sep, renameDir, renameFile, removeDir, removeFile} = window.__TAURI__.fs;
+
 const isWindows = window.__TAURI__.windows;
 
 document.onkeydown = function () {
@@ -11,7 +14,7 @@ document.onkeydown = function () {
 }
 
 document.oncontextmenu = function (e) {
-    e.preventDefault();
+    // e.preventDefault();
 
     let target = e.target.closest("div");
     if (!target) return;
@@ -167,14 +170,20 @@ $(document).ready(function () {
             let span = $("#input").closest(".item_name")
             $(span).text(val);
             let id = $(".select").prop("id");
-            let msg = current_file_msg[id - 1];
-            console.log(msg[1] + "   " + val)
-            let des = process_path(msg[1]);
-            des.pop();
-            des.push(val);
+            let type = current_file_msg[id - 1][2];
+            let msg = current_file_msg[id - 1][1];
+            // console.log(msg[1] + "   " + val)
+
+            let index = msg.lastIndexOf("/");
+            let str = msg.slice(0, index) + "/" + val;
+
+            console.log(str)
+            // console.log("here       " + list.split(",").join(sep))
             // let a = des.split(",").pop().push(val);
             // console.log(des + "  final")
-            invoke("rename", {path: process_path(msg[1]), newName: des})
+            // await invoke("ren ame", {path: process_path(msg[1]), newName: list})
+            await renameFile(msg, str);
+            await refresh()
         }
     })
 
@@ -288,16 +297,26 @@ $(document).ready(function () {
         }
     );
     $(".delete").click(async function () {
-        let index = document.querySelector(".select").id;
-        let path = process_path(current_file_msg[index - 1].slice()[1]);
-        let type = path[2];
-        console.log(path);
-        if (type === "Folder")
-            await invoke("delete_dir", {path:path})
-        else {
-            await invoke("delete_file", {path: path});
+        let id = $(".select").prop("id");
+        let msg = current_file_msg[id - 1].slice();
+        let type = msg[2];
+        let arr = msg[1];
+
+        // let index = arr.lastIndexOf("/");
+        // let path = arr.slice(0, index) + "/";
+
+        let name = $(".select").find(".item_name").text();
+
+        if (type === "Folder") {
+            // await removeDir(name, { dir: new Uint16Array(path.split("/").join().split(""))});
+
+            await invoke("delete_dir", {path:arr.split("/")})
+        } else {
+            // await removeFile(name, {dir: new Uint16Array(path.split("/").join().split(""))})
+            await invoke("delete_file", {path: arr.split("/")});
         }
-        await access(process_path(borad_msg.slice()[1])).then(async r =>
+
+        await access(pre_path[pre_path.length - 1]).then(async r =>
             await add_process()
         );
     })
@@ -356,6 +375,7 @@ async function refresh() {
     await access(pre_path[pre_path.length - 1]).then(async r =>
         await add_process()
     );
+    update_msg_current();
 }
 
 
@@ -366,9 +386,9 @@ const invoke = window.__TAURI__.invoke;
 // console.log(sep)
 
 function process_path(str) {
+    if (!str || typeof str === "Array") return
     console.log("原始 " + str)
     if (!isWindows) {
-
         return str.split("\u005C");
     }
     return str.split("/").join().split("\\").join().split(",");
@@ -506,13 +526,13 @@ borad_msg = []
 copyposition = []
 
 
-pre_path = [["C:\\"]];
+pre_path = [["/Users"]];
 next_path = [];
 read_ui();
 init();
 add_process();
 
-$(".tile").firstChild.click()
+$(".position .tile").click()
 
 
 myWorker = new Worker('find.js');

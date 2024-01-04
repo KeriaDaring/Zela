@@ -16,7 +16,7 @@ rust-version = "1.60"
 tauri-build = { version = "*", features = [] }
 
 [dependencies]
-tauri = { version = "*", features = [ "dialog-all", "shell-open", "window-all", "macos-private-api"] }
+tauri = { version = "*", features = [ "fs-rename-file", "fs-remove-file", "fs-remove-dir", "dialog-all", "shell-open", "window-all", "macos-private-api"] }
 window-vibrancy = "0.4.3"
 window-shadows = "0.2.2"
 sled = "*"

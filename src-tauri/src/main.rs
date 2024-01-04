@@ -19,11 +19,15 @@ use walkdir::WalkDir;
 use rayon::iter::ParallelIterator;
 use std::sync::Arc;
 use std::thread;
-use winsafe::co::KNOWNFOLDERID;
-use winsafe::{co, SHGetKnownFolderPath};
+
+
 
 #[cfg(target_os = "windows")]
 use winres;
+#[cfg(target_os = "windows")]
+use winsafe::co::KNOWNFOLDERID;
+#[cfg(target_os = "windows")]
+use winsafe::{co, SHGetKnownFolderPath};
 
 
 pub mod setup;
@@ -110,7 +114,7 @@ fn delete_file(path: Vec<String>) {
     println!("这是接收到的文件vec{:?}", path);
     fs::remove_file(path_build(path.clone())).expect("删除失败");
     let mut pro_arc = Arc::clone(&PROCESS);
-    pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
+    // pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
 }
 
 #[tauri::command]
@@ -118,7 +122,7 @@ fn delete_dir(path: Vec<String>) {
     println!("这是接收到的文件夹vec{:?}", path);
     fs::remove_dir_all(path_build(path.clone())).expect("递归删除文件夹失败");
     let mut pro_arc = Arc::clone(&PROCESS);
-    pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
+    // pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
 }
 #[tauri::command]
 fn creat(path: Vec<String>, _type: String) {
@@ -128,10 +132,14 @@ fn creat(path: Vec<String>, _type: String) {
 
 #[tauri::command]
 fn rename(path: Vec<String>, new_name: Vec<String>) {
-    println!("重命名成功了");
-    let mut pro_arc = Arc::clone(&PROCESS);
+    println!("重命名成功了{:?} +++ {:?}", path, new_name);
+
+    let pro_arc = Arc::clone(&PROCESS);
     fs::rename(Path::new(&path_build(path.clone())), Path::new(&path_build(new_name.clone()))).expect("重命名失败");
-    pro_arc.lock().expect("操作冲突啦").rename(path_build(path), path_build(new_name));
+        // pro_arc
+        //     .lock()
+        //     .expect("操作冲突啦")
+        //     .rename(path_build(path), path_build(new_name));
 }
 
 #[tauri::command]
@@ -213,7 +221,11 @@ fn search(target: String) {
 
 fn path_build(list: Vec<String>) -> PathBuf {
     println!("source {:?}", list);
-    let mut path = PathBuf::new();
+    let mut path = if cfg!(target_os = "macos") {
+        PathBuf::from("/")
+    } else {
+        PathBuf::new()
+    };
     let mut stage = false;
 
     for i in list {
