@@ -110,12 +110,21 @@ input::placeholder {
 
 #msg {
     display: flex;
+    flex-direction: column;
     padding: 9.152px;
     height: 145px;
     border-radius: 16px;
+    overflow-y: scroll;
     background-color: rgba(255, 255, 255, 0.2);
     /*background-blend-mode: soft-light, normal;*/
     /*box-shadow: 0px 40px 80px 0px rgba(0, 0, 0, 0.10), 0px 4px 26px 0px rgba(255, 255, 255, 0.02) inset, 0px 4px 2px 0px rgba(255, 255, 255, 0.15) inset, 0px -4px 2px 0px rgba(0, 0, 0, 0.1) inset;*/
+
+    .fold {
+        border-bottom: 0.01em solid grey;
+    }
+    .fold .text span {
+        font-size: 13px;
+    }
 }
 
 #device {
@@ -210,20 +219,21 @@ input::placeholder {
     .item {
         /*background-color: blue;*/
         /*align-items: center;*/
-        justify-content: flex-start;
         user-select: none;
         touch-action: none;
-        cursor: move;
+        cursor: default;
         flex-shrink: 0;
-        text-align: center;
-        height: 100px;
-        width: calc((100% - 80px) / 5);
-        max-width: calc((100% - 80px) / 5);
+        /*width: calc((100% - 80px) / 5);*/
+        /*max-width: calc((100% - 80px) / 5);*/
         min-width: calc((100% - 80px) / 5);
-        /*max-height: 80px;*/
-        margin: 5px;
+        width: 136px;
+        /*max-height: 0px;*/
+        /*margin: 5px;*/
 
-        border: blue;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
     .item:nth-child(4) {
         margin-right: 0;
@@ -231,22 +241,25 @@ input::placeholder {
 
     .item img {
         width: 70px;
-        margin: 15px 0 0 0;
+        margin: 15px 0 20px 0;
         user-select: none;
         touch-action: none;
     }
     .text {
         font-size: 12px;
-        color: white;
+        color: black;
         /*background-color: green;*/
         text-overflow: ellipsis;
         overflow: hidden;
-        /*width: 50px;*/
+        white-space: nowrap;
+        max-width: 120px;
         cursor: default;
         text-align: center;
-        /*margin: 0 50px;*/
-        padding-bottom: 10px;
+        min-height: 30px;
+        margin: 0 50px;
+        /*padding-bottom: 10px;*/
     }
+
 }
 
 .select {
@@ -267,6 +280,12 @@ main nav {
     border-bottom: 0.03rem solid white;
     /*background-color: rgba(255, 255, 255, 0.2);*/
 }
+#title {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
 
 .breadcrumb li{
     list-style: none;
@@ -275,7 +294,7 @@ main nav {
     display: flex;
 }
 .breadcrumb a {
-    color: grey;
+    color: black;
 }
 
 
@@ -346,6 +365,9 @@ main nav {
     /*margin-bottom: 34px;*/
     justify-content: space-between;
 }
+#name {
+    color: #d9d9d9;
+}
 
 
 
@@ -388,6 +410,44 @@ main {
     height: 40vh;
 }
 
-#file_pane item {
+.menu {
+    /*display: none;*/
+    border-radius: 10px;
+    background-color: rgba(112, 110, 110, 0.3);
+    position: absolute;
+    height: fit-content;
+    width: fit-content;
+    border: 0.02em solid black;
+    backdrop-filter: blur(30px);
+}
+
+.menu>div {
+    padding: 10px;
+    text-align: left;
+    width: 100px;
+    border-bottom: 0.02em solid black;
+    /*border-radius: 10px;*/
+}
+
+.menu>div:hover {
+    background-color: rgba(178, 175, 175, 0.37);
 
 }
+.menu.div:active {
+    background-color: #262525;
+}
+
+#contextMenu1 {
+    visibility: hidden;
+}
+
+#contextMenu2 {
+    visibility: hidden;
+}
+#contextMenu3 {
+    visibility: hidden;
+}
+#contextMenu4 {
+    visibility: hidden;
+}
+

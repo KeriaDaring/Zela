@@ -12,11 +12,11 @@
 <div id="sidebar">
     <div data-tauri-drag-region id="top">
         <div id="control">
-            <div class="arrow">←</div>
-            <div class="arrow">→</div>
+            <div id="pre" class="arrow">←</div>
+            <div id="next" class="arrow">→</div>
         </div>
         <div id="search">
-            <input type="text" placeholder="Search">
+            <input id="search_input" type="text" placeholder="Search">
         </div>
     </div>
 
@@ -27,10 +27,10 @@
                     <span>Quick Tile</span>
                     <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
                 </div>
-                <div class="fold">
-                    <div class="item press">
+                <div class="fold tiles">
+                    <div class="item press tile">
                         <img src="./imgs/home.svg" alt="">
-                        <div class="text"><span>Home</span></div>
+                        <div class="text tile"><span>Home</span></div>
                     </div>
                 </div>
             </div>
@@ -39,28 +39,95 @@
                     <span>Location</span>
                     <img id="button_2" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
                 </div>
-                <div class="fold">
-                        <div class="item">
-                            <img src="./imgs/Profile.svg" alt="">
-                            <div class="text"><span>User</span></div>
-                        </div>
+                <div class="fold location">
+                    <div class="item tile">
+                        <img src="./imgs/Profile.svg" alt="">
+                        <div class="text tile"><span>User</span></div>
+                    </div>
                 </div>
             </div>
 
         </div>
         <div id="msg">
+            <div class="fold">
+                <div class="title">
+                    <span>name</span>
+                    <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold tiles">
+                    <div class="item press tile">
+                        <div class="text tile"><span id="msg_mini1">Home</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fold">
+                <div class="title">
+                    <span>path</span>
+                    <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold tiles">
+                    <div class="item press tile">
+                        <div class="text tile"><span id="msg_mini2">Home</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fold">
+                <div class="title">
+                    <span>type</span>
+                    <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold tiles">
+                    <div class="item press tile">
+                        <div class="text tile"><span id="msg_mini3">Home</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fold">
+                <div class="title">
+                    <span>creat</span>
+                    <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold tiles">
+                    <div class="item press tile">
+                        <div class="text tile"><span id="msg_mini4">Home</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fold">
+                <div class="title">
+                    <span>modified</span>
+                    <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold tiles">
+                    <div class="item press tile">
+                        <div class="text tile"><span id="msg_mini5">Home</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="fold">
+                <div class="title">
+                    <span>size</span>
+                    <img id="button_1" class="arrow_row rotate" src="./imgs/Chevron_Down.svg" alt="">
+                </div>
+                <div class="fold tiles">
+                    <div class="item tile">
+                        <div class="text tile"><span id="msg_mini6">Home</span></div>
+                    </div>
+                </div>
+            </div>
+
 
         </div>
     </div>
 </div>
 <div id="show_pane">
     <div data-tauri-drag-region id="file_name">
-        <div>
-            <span>name</span>
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">Home</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">/Library</li>
-                </ol>
+        <div id="title">
+            <div><span id="name">name</span></div>
+            <div class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">/Library</li>
+            </div>
         </div>
         <div id="button_area">
             <div>
@@ -94,154 +161,32 @@
                 </div>
             </div>
         </nav>
-        <div id="file_pane">
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
-        
-            <div class="item select">
-                <div><img alt="" src="./imgs/dir.png"></div>
-                <div class="text"><span>Usaasdasda</span></div>
-            </div>
+        <div class="file_area" id="file_pane">
 
         </div>
     </main>
+</div>
+<div class="menu" id="contextMenu1">
+    <div class="open">打开</div>
+    <div class="copy">复制</div>
+    <div id="rename">重命名</div>
+    <div class="delete">删除</div>
+</div>
+<div class="menu" id="contextMenu2">
+    <div id="new">新建</div>
+    <div id="paste">粘贴</div>
+</div>
+<div class="menu" id="contextMenu3">
+    <div class="delete">删除</div>
+</div>
+<div class="menu" id="contextMenu4">
+    <div class="open">打开</div>
+    <div class="copy">复制</div>
+    <div id="add_tile">作为磁贴</div>
+</div>
+<div>
+    <div id="rename">重命名</div>
+    <div>删除</div>
 </div>
 <script src="./js/drag.js"></script>
 <script src="./js/index.js"></script>

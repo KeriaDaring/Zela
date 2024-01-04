@@ -2,27 +2,23 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-
-
 use std::ffi::OsString;
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::Mutex;
-use tauri::utils::html::parse;
+use lazy_static::lazy_static;
+use app::process::Process;
 
-pub mod process;
 
-use app::setup;
-use crate::process::Process;
+pub mod setup;
 
 
 #[macro_use]
 extern crate lazy_static;
 
-
 lazy_static! {
-
-    static ref PROCESS: Mutex<Process> = Mutex::new(Process::new());
+    pub static ref PROCESS: Mutex<Process> = Mutex::new(Process::new());
 }
 
 
@@ -36,8 +32,9 @@ lazy_static! {
 // }
 
 #[tauri::command]
-fn access(path: String) {
-    PROCESS.lock().expect("damn").access(path);
+fn access(path: Vec<String>) {
+    // println!("{:?}", path);
+    PROCESS.lock().expect("damn").access(path_build(path));
 }
 
 #[tauri::command]
@@ -46,18 +43,21 @@ fn get_file() -> Option<Vec<String>> {
 }
 
 #[tauri::command]
-fn copy(path1: String, path2: String) {
-    let source = OsString::from(path1);
-    let destination = OsString::from(path2);
+fn copy(path1: Vec<String>, path2: Vec<String>) {
+    let source = OsString::from(path_build(path1));
+    let destination = OsString::from(path_build(path2));
     match fs::copy(source, destination) {
         Ok(_) => println!("File copied successfully."),
         Err(e) => println!("Error copying file: {:?}", e),
     }
 }
+
+
+
 #[tauri::command]
-fn _move(path1: String , path2: String) {
-    let source = OsString::from(path1.clone());
-    let destination = OsString::from(path2.clone());
+fn _move(path1: Vec<String> , path2: Vec<String>) {
+    let source = OsString::from(path_build(path1.clone()));
+    let destination = OsString::from(path_build(path2.clone()));
 
     #[cfg(target_os = "windows")]
     Command::new("cmd")
@@ -74,7 +74,7 @@ fn _move(path1: String , path2: String) {
     PROCESS
         .lock()
         .expect("移动文件失败")
-        ._move(path1, path2);
+        ._move(path_build(path1), path_build(path2));
 }
 
 #[tauri::command]
@@ -83,23 +83,32 @@ fn read_ui() -> Vec<i32>{
 }
 
 #[tauri::command]
-fn delete(path: String) {
-    PROCESS.lock().expect("操作冲突啦").delete(path);
-}
-#[tauri::command]
-fn creat(path: String, _type: String) {
-    PROCESS.lock().expect("操作冲突啦").creat(path, _type)
+fn delete_file(path: Vec<String>) {
+    println!("{:?}", path);
+    fs::remove_file(path_build(path.clone())).expect("删除失败");
+    PROCESS.lock().expect("操作冲突啦").delete(path_build(path));
 }
 
 #[tauri::command]
-fn rename(path: String, new_name: String) {
-    fs::rename(path.clone(), new_name.clone()).expect("重命名失败");
-    PROCESS.lock().expect("操作冲突啦").rename(path, new_name)
+fn delete_dir(path: Vec<String>) {
+    println!("{:?}", path);
+    fs::remove_dir_all(path_build(path.clone())).expect("递归删除文件夹失败");
+    PROCESS.lock().expect("操作冲突啦").delete(path_build(path));
+}
+#[tauri::command]
+fn creat(path: Vec<String>, _type: String) {
+    PROCESS.lock().expect("操作冲突啦").creat(path_build(path), _type)
+}
+
+#[tauri::command]
+fn rename(path: Vec<String>, new_name: Vec<String>) {
+    fs::rename(Path::new(&path_build(path.clone())), Path::new(&path_build(new_name.clone()))).expect("重命名失败");
+    PROCESS.lock().expect("操作冲突啦").rename(path_build(path), path_build(new_name))
 }
 
 #[tauri::command]
 fn fold(target: usize) {
-    PROCESS.lock().expect("操作冲突了").fold(target)
+    PROCESS.lock().expect("操作冲突了").fold(target - 1)
 }
 
 #[tauri::command]
@@ -111,13 +120,12 @@ fn test() -> Vec<String> {
     list.push("hello".to_string());
     list.push("hello".to_string());
     list
-
     //验证了可以传数组
 }
 
 #[tauri::command]
-fn open(path:String) {
-    let file_path = OsString::from(path.clone());
+fn open(path: Vec<String>) {
+    let file_path = OsString::from(path_build(path.clone()));
     #[cfg(target_os = "windows")]
     Command::new("cmd")
         .args(["/C", "start", "", path.as_str()])
@@ -148,13 +156,59 @@ fn open(path:String) {
 
 #[tauri::command]
 fn search(target: String) {
+    // println!("{:?}", target);
     PROCESS.lock().expect("damn！ search 失败").search(&target);
 }
 
-fn main() {
+fn path_build(list: Vec<String>) -> PathBuf {
+    let mut path = if cfg!(target_os = "windows") {
+        PathBuf::from("")
+    } else {
+        PathBuf::from("/")
+    };
+    for i in list.iter() {
+        path.push(i);
+    }
+    path
+}
 
+fn path_debuild(path: PathBuf) -> String {
+    path.to_str().unwrap().to_string()
+}
+
+#[tauri::command]
+async fn init_index() {
+    PROCESS.lock().expect("初始化index").init_index();
+}
+
+#[tauri::command]
+async fn init_tiles() -> Vec<String> {
+    let list = PROCESS.lock()
+        .expect("初始化磁贴")
+        .init_tiles()
+        .into_iter()
+        .map(|n| path_debuild(n))
+        .collect();
+    println!("{:?}", list);
+    list
+
+}
+
+#[tauri::command]
+async fn add_tiles(path: Vec<String>) {
+    PROCESS.lock().expect("添加磁铁失败").add_tiles(path_build(path))
+}
+
+#[tauri::command]
+async fn remove_tiles(target: usize) {
+    PROCESS.lock().expect("删除磁贴失败").remove_tiles(target);
+}
+
+
+
+fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![test,read_ui,fold, access, _move, open, creat, copy, get_file, search])
+        .invoke_handler(tauri::generate_handler![delete_file, delete_dir, init_tiles, add_tiles, remove_tiles, search, test, read_ui, fold, access, _move, open, creat, copy, get_file])
         .setup(setup::init)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

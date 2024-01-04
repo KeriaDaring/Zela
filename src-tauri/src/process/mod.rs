@@ -1,7 +1,9 @@
 use std::fs::{create_dir, File};
-use std::path::{Path, PathBuf};
-use app::file_system::FileSystem;
-use app::profile::Profile;
+use std::path::PathBuf;
+use tantivy::Opstamp;
+use tauri::NativeImage::Path;
+use crate::file_system::FileSystem;
+use crate::profile::Profile;
 
 
 #[derive(Debug)]
@@ -13,8 +15,9 @@ pub struct Process {
 
 
 impl Process {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         let user = Profile::new();
+        user.print_ui();
         let fs = FileSystem::new();
         Process {
             user,
@@ -27,7 +30,7 @@ impl Process {
     //     self.user.toggle_ui(target);
     // }
 
-    pub fn _move(&mut self, path1: String, path2: String) {
+    pub fn _move(&mut self, path1: PathBuf, path2: PathBuf) {
         self.fs._move(path1, path2);
     }
 
@@ -39,31 +42,35 @@ impl Process {
         self.fs.search(target);
     }
 
-    pub fn access(&mut self, path: String) {
-        self.fs.access(PathBuf::from(path))
+    pub fn access(&mut self, path: PathBuf) {
+        self.fs.access(path)
     }
 
     pub fn get_file(&mut self) -> Option<Vec<String>> {
         self.fs.get_file()
     }
 
-    pub fn creat(&mut self, path: String, _type: String) {
-        let path_in = Path::new(&path);
+    pub fn creat(&mut self, path: PathBuf, _type: String) {
+        let path_in = path.clone();
+
+        //可以添加更多文件类型
         match _type.as_str() {
             "dir" => {
-                create_dir(path_in);
+                create_dir(path_in).expect("文件夹创建失败");
             }
             _ => {
                 File::create(path_in).expect("创建文件失败");
             }
         }
-        self.fs.creat(&path);
+        self.fs.creat(path);
     }
 
-    pub fn delete(&mut self, path: String) {
-        self.fs.delete(path)
+    pub fn delete(&mut self, path: PathBuf) {
+        match self.fs.delete(path) {
+            _ => {}
+        }
     }
-    pub fn rename(&self, path: String, new_path: String) {
+    pub fn rename(&self, path: PathBuf, new_path: PathBuf) {
         self.fs.rename(path, new_path)
     }
 
@@ -75,6 +82,31 @@ impl Process {
         self.user.toggle_ui(target);
         self.user.print_ui();
     }
+
+    pub fn init_index(&self) {
+        self.fs.init_index();
+    }
+    pub fn init_tiles(&self) -> Vec<PathBuf>{
+        match self.user.init_tiles() {
+            None => {
+                println!("空预设");
+                vec![PathBuf::new()]
+            }
+            Some(val) => {
+                val
+            }
+        }
+    }
+    pub fn add_tiles(&mut self, path: PathBuf) {
+        self.user.add_tiles(path);
+    }
+
+    pub fn remove_tiles(&mut self, target: usize) {
+        self.user.remove_tiles(target);
+    }
+
+
+
 }
 
 

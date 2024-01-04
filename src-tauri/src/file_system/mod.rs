@@ -1,18 +1,19 @@
 use crate::file::File;
-use std::{env, fs, vec};
+use std::{env, fs, thread, vec};
 use std::path::PathBuf;
 use std::str::FromStr;
-use std::process::Command;
 use std::time::SystemTime;
 use chrono::{Utc, DateTime};
 use rayon::prelude::*;
 use walkdir::WalkDir;
-use std::collections::VecDeque;
+use std::collections::{BTreeSet, VecDeque};
 use std::hash::Hash;
-use tantivy::{Document, Index, Term};
+use rayon::spawn;
+use tantivy::{Document, Index, Opstamp, Term};
 use tantivy::collector::TopDocs;
 use tantivy::query::RegexQuery;
 use tantivy::schema::{Field, Schema, STORED, TEXT, Value};
+use crate::document1::Document1;
 
 
 #[derive(Debug)]
@@ -60,8 +61,6 @@ fn init_home() -> Vec<PathBuf> {
             home.push(PathBuf::from(line.trim()));
         }
     }
-    home.remove(0);
-    home.pop();
     home
 }
 
@@ -81,66 +80,36 @@ impl FileSystem {
             home = val;
         }
 
-        let flag_file_path = "./snapshot";
+        // let flag_file_path = "index";
 
-        let tab_arr: [PathBuf; 2] = [initial_page(), PathBuf::new()];
-        if fs::metadata(&flag_file_path).is_ok() {
-            FileSystem {
-                stage: Stage::Done,
-                path: home,
-                home: init_home(),
-                queue: VecDeque::new(),
-            }
-        } else {
-            FileSystem {
-                stage: Stage::Done,
-                path: home,
-                home: init_home(),
-                queue: VecDeque::new(),
-            }
-        }
+        let fs = FileSystem {
+            stage: Stage::Done,
+            path: home,
+            home: init_home(),
+            queue: VecDeque::new(),
+        };
+        // if fs::metadata(&flag_file_path).is_ok() {
+            fs
+        // } else {
+        //     fs.init_index().await;
+        //     fs
+        // }
     }
 
 
 
-    pub fn scan_all(&self) {
-        let index = Index::create_in_dir("./index", {
-            let mut schema_builder = Schema::builder();
-            schema_builder.add_text_field("name", TEXT | STORED);
-            schema_builder.add_text_field("path", STORED);
-            schema_builder.add_text_field("type", TEXT | STORED);
-            schema_builder.add_text_field("creat", TEXT | STORED);
-            schema_builder.add_text_field("modify", TEXT | STORED);
-            let schema = schema_builder.build();
-            schema
-        }).expect("index 创建失败");
-        let _ = &self.home.iter().for_each(|n| WalkDir::new(n)
-            // .max_depth(3)
-            .into_iter()
-            .par_bridge()
-            .for_each(|entry| {
-                match entry {
-                    Ok(entry) => {
-                        let file = File::from(entry);
-                        file.add_in_sql();
-                    }
-                    Err(err) => eprintln!("Error: {}", err),
-                }
-            }));
-    }
-
-    pub fn _move(&self, path1: String, path2: String) {
-        self.creat(path2.as_str());
+    pub fn _move(&self, path1: PathBuf, path2: PathBuf) {
+        self.creat(path2);
         self.delete(path1);
     }
-    pub fn rename(&self, path: String, new_name: String) {
+    pub fn rename(&self, path: PathBuf, new_name: PathBuf) {
         self.delete(path);
-        self.creat(new_name.as_str())
+        self.creat(new_name)
     }
 
-    pub fn creat(&self, path: &str) {
-        let index = Index::open_in_dir("../index").expect("打开index错误");
-        WalkDir::new(PathBuf::from(path))
+    pub fn creat(&self, path: PathBuf) {
+        Index::open_in_dir("index").expect("打开index错误");
+        WalkDir::new(path)
             .max_depth(0)
             .into_iter()
             .for_each(|entry| {
@@ -153,17 +122,18 @@ impl FileSystem {
                 }
             });
     }
-    pub fn delete(&self, path: String) {
-        let index = Index::open_in_dir("../index").expect("打开索引失败");
+    pub fn delete(&self, path: PathBuf) -> tantivy::Result<Opstamp> {
+            let index = Index::open_in_dir("index").expect("打开索引失败");
 
-        let schema = index.schema();
-        let field = schema.get_field("path").expect("获取field失败");
+            let schema = index.schema();
+            let field = schema.get_field("path").expect("获取field失败");
 
-        let mut writer = index.writer(5_000_000).expect("获取writer失败");
+            let mut writer = index.writer(500_000_000).expect("获取writer失败");
 
-        let term = Term::from_field_text(field, path.as_str());
-        writer.delete_term(term);
-        writer.commit().expect("操作提交失败");
+
+            let term = Term::from_field_text(field, path.to_str().expect("转换失败"));
+            writer.delete_term(term);
+            writer.commit()
     }
 
     pub fn search(&mut self, pattern: &str) {
@@ -182,7 +152,11 @@ impl FileSystem {
                     Ok(entry) => {
                         self.queue.push_front(File::from(entry).msg());
                     }
-                    Err(err) => eprintln!("访问失败 {}", err),
+                    Err(err) => {
+                        eprintln!("访问失败 {}", err);
+
+                    }
+
                 }
             });
         self.path = name;
@@ -207,11 +181,42 @@ impl FileSystem {
     fn clear_queue(&mut self) {
         self.queue.clear();
     }
+    pub fn scan_all(&self) {
+        Index::create_in_dir("index", {
+            let mut schema_builder = Schema::builder();
+            schema_builder.add_text_field("name", TEXT | STORED);
+            schema_builder.add_text_field("path", STORED);
+            schema_builder.add_text_field("type", TEXT | STORED);
+            schema_builder.add_text_field("creat", TEXT | STORED);
+            schema_builder.add_text_field("modify", TEXT | STORED);
+            schema_builder.add_text_field("size", STORED);
+            let schema = schema_builder.build();
+            schema
+        }).expect("index 创建失败");
+        for i in &self.home {
+            WalkDir::new(i)
+                .max_depth(8)
+                .into_iter()
+                .par_bridge()
+                .for_each(|entry| {
+                    match entry {
+                        Ok(entry) => {
+                            let file = File::from(entry);
+                            file.add_in_sql();
+                        }
+                        Err(err) => eprintln!("Error: {}", err),
+                    }
+                });
+        }
+        //
+        // let index = Index::open_in_dir("../index").expect("打开index错误");
+        // println!("{:?}", index)
+    }
 
     pub fn find_keys_containing_pattern(&mut self, pattern: &str) {
         self.clear_queue();
 
-        let index = Index::open_in_dir("../index").unwrap();
+        let index = Index::open_in_dir("index").unwrap();
         let schema = index.schema();
         let fields = vec![
             schema.get_field("name").unwrap(),
@@ -227,21 +232,18 @@ impl FileSystem {
             schema.get_field("creat").unwrap(),
             schema.get_field("modify").unwrap(),
         ];
-        let mut list = Vec::new();
+        let mut set = BTreeSet::new();
 
 
         for i in fields1 {
-            self.search_comp(pattern, i, &mut list);
+            self.search_comp(pattern, i, &mut set);
         }
 
-        for i in list {
-            let vec = self.transform(i, fields.clone());
+        for i in set.into_iter() {
+            let vec = self.transform(i.0, fields.clone());
             self.queue.push_front(vec);
         }
 
-        for i in &self.queue {
-            println!("{:?}", i);
-        }
     }
 
     fn transform(&mut self, doc: Document, field: Vec<Field>) -> Vec<String>{
@@ -253,14 +255,14 @@ impl FileSystem {
         list
     }
 
-    fn search_comp(&self, pattern: &str, field: Field, list: &mut Vec<Document>) {
-        let index = Index::open_in_dir("../index").expect("index打开错误");
+    fn search_comp(&self, pattern: &str, field: Field, set: &mut BTreeSet<Document1>) {
+        let index = Index::open_in_dir("index").expect("index打开错误");
         let reader = index.reader().expect("reader初始化错误");
         let searcher = reader.searcher();
         let regex_query = RegexQuery::from_pattern(pattern, field).expect("查找器初始化失败");
 
         // 执行查询
-        let top_docs = searcher.search(&regex_query, &TopDocs::with_limit(100000000)).expect("查找失败");
+        let top_docs = searcher.search(&regex_query, &TopDocs::with_limit(500)).expect("查找失败");
 
         // 创建一个 Vec 以保存匹配的文档信息
         let mut matched_docs: Vec<tantivy::DocAddress> = Vec::new();
@@ -272,9 +274,11 @@ impl FileSystem {
 
         // 处理匹配的文档信息
         for doc_address in matched_docs {
-            let retrieved_doc = searcher.doc(doc_address).expect("文档转换");
+            let document = searcher.doc(doc_address).expect("文档转换");
+            let retrieved_doc = Document1(document);
             // println!("Matched Document: {:?}", retrieved_doc);
-            list.push(retrieved_doc);
+            // list.push(retrieved_doc);
+            set.insert(retrieved_doc);
         }
 
     }
@@ -303,12 +307,29 @@ impl FileSystem {
     //     }
     //     container.to_str().unwrap().to_string()
     // }
+
+    pub fn init_index(&self) {
+        self.scan_all();
+    }
 }
+
+fn transform(doc: &Document, field: Vec<Field>) -> Vec<String>{
+    let mut list: Vec<String> = Vec::new();
+    for i in field {
+        let val = doc.get_first(i).expect("拿到属性列表").as_text().expect("拿到属性错误");
+        list.push(val.to_string());
+    }
+    list
+}
+
+
 
 
 #[cfg(test)]
 mod test {
+    use std::sync::Mutex;
     use std::time::Duration;
+    use serde_json::to_string;
     use sled::Db;
     use super::*;
 
@@ -438,7 +459,7 @@ mod test {
 
     #[test]
     pub fn scan_all() {
-        let index = Index::create_in_dir("../index", {
+        let index = Index::create_in_dir("index", {
             let mut schema_builder = Schema::builder();
             schema_builder.add_text_field("name", TEXT | STORED);
             schema_builder.add_text_field("path", STORED);
@@ -449,11 +470,11 @@ mod test {
             let schema = schema_builder.build();
             schema
         }).expect("index 创建失败");
-        let index = Index::open_in_dir("../index").expect("打开index错误");
+        let index = Index::open_in_dir("index").expect("打开index错误");
         WalkDir::new(env::home_dir().expect("home"))
-            .max_depth(2)
+            .max_depth(8)
             .into_iter()
-            // .par_bridge()
+            .par_bridge()
             .for_each(|entry| {
                 match entry {
                     Ok(entry) => {
@@ -463,9 +484,9 @@ mod test {
                     Err(err) => eprintln!("Error: {}", err),
                 }
             });
-
-        let index = Index::open_in_dir("../index").expect("打开index错误");
-        println!("{:?}", index)
+        //
+        // let index = Index::open_in_dir("../index").expect("打开index错误");
+        // println!("{:?}", index)
     }
 
 
@@ -496,13 +517,27 @@ mod test {
         let pattern = "2023";
         let mut fs = FileSystem::new();
         fs.search(pattern);
-        println!("{:?}", fs.queue)
+        // let mut times = 0;
+            while let Some(val) = fs.queue.pop_back() {
+                println!("{:?}", val);
+                continue;
+            }
+    }
+
+    pub fn path_build(list: Vec<String>) -> PathBuf {
+        let mut buf = PathBuf::new();
+        for i in list.iter() {
+            buf.push(i);
+        }
+        buf
     }
 
     #[test]
     fn access() {
         let mut fs = FileSystem::new();
-        fs.access(PathBuf::from_str("/Users/keria/Downloads").expect("文件夹访问失败"));
+        let list = ["/Users".to_string(),"keria".to_string(),"Downloads".to_string()];
+        let list = Vec::from(list);
+        fs.access(path_build(list));
         loop {
             match fs.get_file() {
                 None => {

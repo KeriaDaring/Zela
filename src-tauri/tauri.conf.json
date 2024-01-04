@@ -106,7 +106,7 @@
         "width": 849,
         "resizable": false,
         "titleBarStyle": "Overlay",
-        "decorations": false
+        "decorations": true
       }
     ]
   }

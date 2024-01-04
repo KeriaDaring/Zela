@@ -1,9 +1,11 @@
-use tauri::{App, Manager, WindowBuilder};
+use tauri::{App, CloseRequestApi, Manager};
+use tauri::RunEvent::WindowEvent;
 
 /// setup
 pub fn init(app: &mut App) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let win = app.get_window("main").unwrap();
     win.show().unwrap();
+    // win.listen()
 
 
     use window_vibrancy::{apply_acrylic, apply_vibrancy, NSVisualEffectMaterial};
@@ -15,8 +17,6 @@ pub fn init(app: &mut App) -> std::result::Result<(), Box<dyn std::error::Error>
         win.set_decorations(true).unwrap();
         apply_vibrancy(&win, NSVisualEffectMaterial::HudWindow, Some(NSVisualEffectState::Active), None)
                 .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
-
-
     }
 
     #[cfg(target_os = "windows")]
