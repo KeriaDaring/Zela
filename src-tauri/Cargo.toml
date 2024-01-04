@@ -27,7 +27,7 @@ serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "*"
 lazy_static = "*"
 tantivy = "*"
-tokio = "1.35.1"
+tokio = { version = "1.35.1", features = ["rt", "rt-multi-thread", "macros"] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

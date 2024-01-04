@@ -10,20 +10,18 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::Mutex;
 use lazy_static::lazy_static;
+use rayon::iter::ParallelBridge;
+use tantivy::Index;
+use tantivy::schema::{Schema, STORED, TEXT};
 use app::process::Process;
 use tokio::task;
 use walkdir::WalkDir;
-use tantivy::schema::{STORED, TEXT};
-use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
-use serde_json::value::Index;
-use tantivy::Index;
-use tantivy::schema::Schema;
 
 
 pub mod setup;
 pub mod file;
-use crate::file::File;
+use file::{File as File1};
 
 
 #[macro_use]
@@ -273,7 +271,7 @@ pub async fn init_index() {
             .for_each(|entry| {
                 match entry {
                     Ok(entry) => {
-                        let file = File::from(entry);
+                        let file = File1::from(entry);
                         file.add_in_sql();
                     }
                     Err(err) => eprintln!("Error: {}", err),
@@ -283,7 +281,7 @@ pub async fn init_index() {
 
 
 }
-#[tokio::main]
+// #[tokio::main]
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![rename, new_file, new_dir, delete_file, delete_dir, init_tiles, add_tiles, remove_tiles, search, test, read_ui, fold, access, _move, open, creat, copy, get_file])
