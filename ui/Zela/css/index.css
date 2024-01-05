@@ -26,6 +26,10 @@ body {
     flex: 1;
 }
 
+#pane {
+    overflow: scroll;
+}
+
 
 #show_pane {
     padding-left: 5px;
@@ -181,8 +185,15 @@ input::placeholder {
     fill: black;
 }
 
-.fold {
+#disk .fold {
     /*padding-left: 5px;*/
+    position: relative;
+    left: 5%;
+}
+
+#mini_title {
+    position: relative;
+    left: 5%;
 }
 
 .rotate {
@@ -195,7 +206,6 @@ input::placeholder {
         /*justify-content: first baseline;*/
         cursor: default;
         padding: 5px 0;
-        padding-left: 10px;
         font-size: 14px;
         /* background-color: red; */
         border-radius: 20px;
@@ -245,6 +255,7 @@ input::placeholder {
         width: 70px;
         margin: 15px 0 20px 0;
         user-select: none;
+        -webkit-user-select: none;
         touch-action: none;
     }
     .text {
@@ -362,36 +373,63 @@ main nav {
     text-align: left;
     display: flex;
     width: fit-content;
-    
+
     /*background-color: black;*/
     padding-left: 20px;
     margin-top: 20px;
     /*margin-bottom: 34px;*/
     justify-content: space-between;
     /* background-color: red; */
-    text-overflow: ellipsis;
-    /* overflow: hidden; */
+
+    /*max-width: 80px;*/
     white-space: nowrap;
-    /* max-width: 80px; */
 }
+#title {
+    text-overflow: ellipsis;
+    overflow-x: scroll;
+    max-width: 180px;
+}
+
+.mini-title {
+    justify-content: space-between;
+}
+
+.left_block {
+    display: flex;
+}
+
 #name {
-    color: #d9d9d9;
+    color: white;
     text-align: right;
     /* background-color: red; */
+    /*text-overflow: ellipsis;*/
+    /*overflow-x: scroll;*/
+    /*max-width: 80px;*/
 }
+
+
+.context_name {
+    text-overflow: ellipsis;
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
+
 
 .pane1 {
     display: flex;
-    gap: 10px;
+    /*gap: 10px;*/
 }
 
 
 #button_area {
+    position: absolute;
     /* flex: 10; */
     /* background-color: blue; */
     /* padding-right: 10px; */
+
     display: flex;
-    margin-left: 150px;
+    margin-left: 200px;
 }
 
 .button_block {
@@ -401,8 +439,9 @@ main nav {
 }
 
 .button {
-    border-radius: 20px;
-    padding: 10px;
+    border-radius: 10px;
+    padding: 5px;
+    /*margin-bottom: 15px;*/
 }
 
 .button:hover {
@@ -410,6 +449,7 @@ main nav {
 }
 
 .press {
+    border-radius: 10px;
     background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -424,6 +464,17 @@ main {
     border-radius: 16px;
 }
 
+#file_pane img {
+    pointer-events: none;
+}
+
+.mini-title img {
+    pointer-events: none;
+}
+img {
+    user-select: none;
+}
+
 
 #file_pane {
     flex: 10;
@@ -431,6 +482,8 @@ main {
     display: flex;
     justify-content: flex-start;
     height: 40vh;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
 .menu {

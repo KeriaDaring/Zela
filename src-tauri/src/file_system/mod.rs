@@ -23,6 +23,7 @@ pub struct FileSystem {
     path: PathBuf,
     home: Vec<PathBuf>,
     queue: VecDeque<Vec<String>>,
+    queue1: VecDeque<Vec<String>>
 }
 
 
@@ -88,6 +89,7 @@ impl FileSystem {
             path: home,
             home: init_home(),
             queue: VecDeque::new(),
+            queue1: VecDeque::new()
         };
 
         // if fs::metadata(&flag_file_path).is_ok() {
@@ -157,7 +159,28 @@ impl FileSystem {
                     }
                     Err(err) => {
                         eprintln!("访问失败 {}", err);
+                    }
 
+                }
+            });
+        self.path = name;
+        self.stage = Stage::Done;
+    }
+    pub fn access1(&mut self, name: PathBuf) {
+        self.clear_queue();
+        self.stage = Stage::Doing;
+        WalkDir::new(name.clone())
+            .min_depth(1)
+            .max_depth(1)
+            .into_iter()
+            // .par_bridge()
+            .for_each(|entry| {
+                match entry {
+                    Ok(entry) => {
+                        self.queue1.push_front(File::from(entry).msg());
+                    }
+                    Err(err) => {
+                        eprintln!("访问失败 {}", err);
                     }
 
                 }
@@ -168,6 +191,9 @@ impl FileSystem {
 
     pub fn get_file(&mut self) -> Option<Vec<String>> {
         self.queue.pop_back()
+    }
+    pub fn get_file1(&mut self) -> Option<Vec<String>> {
+        self.queue1.pop_back()
     }
 
     pub fn toggle_stage(&mut self) {

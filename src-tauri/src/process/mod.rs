@@ -46,10 +46,15 @@ impl Process {
 
     pub fn access(&mut self, path: PathBuf) {
         self.fs.access(path)
+    }pub fn access1(&mut self, path: PathBuf) {
+        self.fs.access(path)
     }
 
     pub fn get_file(&mut self) -> Option<Vec<String>> {
         self.fs.get_file()
+    }
+    pub fn get_file1(&mut self) -> Option<Vec<String>> {
+        self.fs.get_file1()
     }
 
     pub fn creat(&mut self, path: PathBuf, _type: String) {
@@ -102,6 +107,11 @@ impl Process {
 
     pub fn remove_tiles(&mut self, target: usize) {
         self.user.remove_tiles(target);
+    }
+
+
+    pub fn save(&self) {
+        self.user.save();
     }
 
 

@@ -5,6 +5,7 @@ use std::path::{Path};
 use std::time::{Duration, SystemTime};
 use chrono::{DateTime, Utc};
 use rayon::iter::ParallelBridge;
+use serde_json::to_string;
 use tantivy::{doc, HasLen, Index};
 use walkdir::{DirEntry, WalkDir};
 
@@ -104,6 +105,7 @@ impl File {
 
     pub fn msg(&self) -> Vec<String> {
         let path: &Path = self.entry.path();
+        let path_str = path.as_os_str().to_str().unwrap().to_string();
         let name: &OsStr;
         #[cfg(target_os = "macos")]
         {
@@ -122,7 +124,12 @@ impl File {
         let mut list: Vec<_> = binding.split(".").collect();
         let _type = list.pop().expect("获取拓展名错误");
 
-        let metadata = fs::metadata(path).unwrap();
+        let metadata = match fs::metadata(path) {
+            Ok(val) => val,
+            Err(_) => {
+                return vec![name.to_str().unwrap().to_string(), path_str, _type.to_string(), "无".to_string(), "无".to_string(), "无".to_string()];
+            }
+        };
         //len 为字节
 
         let mut len = metadata.len().to_string();

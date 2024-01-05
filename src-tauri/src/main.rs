@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 use std::ffi::OsString;
-use std::{env, fs, path};
+use std::{env, fs};
 use std::fs::File;
 use std::io::BufRead;
 use std::path::{Path, PathBuf};
@@ -14,12 +14,11 @@ use rayon::iter::ParallelBridge;
 use tantivy::Index;
 use tantivy::schema::{Schema, STORED, TEXT};
 use app::process::Process;
-use tokio::task;
 use walkdir::WalkDir;
 use rayon::iter::ParallelIterator;
 use std::sync::Arc;
 use std::thread;
-
+use tauri::Manager;
 
 
 #[cfg(target_os = "windows")]
@@ -28,6 +27,8 @@ use winres;
 use winsafe::co::KNOWNFOLDERID;
 #[cfg(target_os = "windows")]
 use winsafe::{co, SHGetKnownFolderPath};
+#[cfg(target_os = "windows")]
+use winsafe::msg;
 
 
 pub mod setup;
@@ -57,6 +58,30 @@ fn access(path: Vec<String>) {
     println!("test access{:?}", path);
     let mut pro_arc = Arc::clone(&PROCESS);
     pro_arc.lock().expect("damn").access(path_build(path));
+}
+#[tauri::command]
+fn access1(path: Vec<String>) {
+    println!("test access{:?}", path);
+    let mut pro_arc = Arc::clone(&PROCESS);
+    pro_arc.lock().expect("damn").access1(path_build(path));
+}
+
+#[tauri::command]
+fn current_layer_msg(path: Vec<String>) -> Vec<String>{
+    let mut msg: Vec<String> = Vec::new();
+    WalkDir::new(path_build(path))
+        .max_depth(0)
+        .into_iter()
+        // .par_bridge()
+        .for_each(|entry| {
+            match entry {
+                Ok(entry) => {
+                    msg = File1::from(entry).msg();
+                }
+                Err(err) => eprintln!("Error: {}", err),
+            }
+        });
+    msg
 }
 
 #[tauri::command]
@@ -95,11 +120,11 @@ fn _move(path1: Vec<String> , path2: Vec<String>) {
         .status()
         .expect("Failed to move file.");
 
-        let mut pro_arc = Arc::clone(&PROCESS);
-    pro_arc
-        .lock()
-        .expect("移动文件失败")
-        ._move(path_build(path1), path_build(path2));
+    //     let mut pro_arc = Arc::clone(&PROCESS);
+    // pro_arc
+    //     .lock()
+    //     .expect("移动文件失败")
+    //     ._move(path_build(path1), path_build(path2));
 }
 
 #[tauri::command]
@@ -113,7 +138,7 @@ fn read_ui() -> Vec<i32>{
 fn delete_file(path: Vec<String>) {
     println!("这是接收到的文件vec{:?}", path);
     fs::remove_file(path_build(path.clone())).expect("删除失败");
-    let mut pro_arc = Arc::clone(&PROCESS);
+    // let mut pro_arc = Arc::clone(&PROCESS);
     // pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
 }
 
@@ -121,7 +146,7 @@ fn delete_file(path: Vec<String>) {
 fn delete_dir(path: Vec<String>) {
     println!("这是接收到的文件夹vec{:?}", path);
     fs::remove_dir_all(path_build(path.clone())).expect("递归删除文件夹失败");
-    let mut pro_arc = Arc::clone(&PROCESS);
+    // let mut pro_arc = Arc::clone(&PROCESS);
     // pro_arc.lock().expect("操作冲突啦").delete(path_build(path));
 }
 #[tauri::command]
@@ -136,10 +161,10 @@ fn rename(path: Vec<String>, new_name: Vec<String>) {
 
     let pro_arc = Arc::clone(&PROCESS);
     fs::rename(Path::new(&path_build(path.clone())), Path::new(&path_build(new_name.clone()))).expect("重命名失败");
-        // pro_arc
-        //     .lock()
-        //     .expect("操作冲突啦")
-        //     .rename(path_build(path), path_build(new_name));
+        pro_arc
+            .lock()
+            .expect("操作冲突啦")
+            .rename(path_build(path), path_build(new_name));
 }
 
 #[tauri::command]
@@ -283,6 +308,13 @@ async fn remove_tiles(target: usize) {
     });
 }
 
+#[tauri::command]
+async fn get_file1() -> Option<Vec<String>> {
+    let pro_arc = Arc::clone(&PROCESS);
+    let a = pro_arc.lock().expect("获取文件失败").get_file1();
+    a
+}
+
 pub async fn init_index() {
     let mut home = vec![];
     #[cfg(target_os = "macos")]
@@ -302,7 +334,7 @@ pub async fn init_index() {
             home.push(PathBuf::from(line.trim()));
         }
     }
-    Index::create_in_dir("index", {
+    match Index::create_in_dir("index", {
         let mut schema_builder = Schema::builder();
         schema_builder.add_text_field("name", TEXT | STORED);
         schema_builder.add_text_field("path", STORED);
@@ -312,7 +344,12 @@ pub async fn init_index() {
         schema_builder.add_text_field("size", STORED);
         let schema = schema_builder.build();
         schema
-    }).expect("index 创建失败");
+    }) {
+        Ok(_) => {println!("index开始工作")}
+        Err(_) => {
+            return;
+        }
+    };
     for i in home {
         WalkDir::new(i)
             .max_depth(8)
@@ -328,8 +365,13 @@ pub async fn init_index() {
                 }
             });
     }
+}
 
 
+
+fn save() {
+    let pro_arc = Arc::new(&PROCESS);
+    pro_arc.lock().expect("你好").save();
 }
 // #[tokio::main]
 fn main() {
@@ -366,31 +408,47 @@ fn main() {
 // }
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![rename, new_file, new_dir, delete_file, delete_dir, init_tiles, add_tiles, remove_tiles, search, test, read_ui, fold, access, _move, open, creat, copy, get_file])
-        .setup(setup::init)
+        .invoke_handler(tauri::generate_handler![get_file1, access1, current_layer_msg, rename, new_file, new_dir, delete_file, delete_dir, init_tiles, add_tiles, remove_tiles, search, test, read_ui, fold, access, _move, open, creat, copy, get_file])
+        .setup(|app| {
+            let win = app.get_window("main").unwrap();
+            win.show().unwrap();
+            // win.listen()
+
+
+            win.listen("tauri://close-requested", move |event| {
+                println!("关机了！！");
+                drop(PROCESS.lock().expect("nope"));
+                // 在这里执行任何清理操作
+            });
+
+
+            use window_vibrancy::{apply_vibrancy, NSVisualEffectMaterial};
+            use window_vibrancy::NSVisualEffectState;
+
+            #[cfg(target_os = "macos")]
+            {
+                win.set_decorations(true).unwrap();
+                apply_vibrancy(&win, NSVisualEffectMaterial::HudWindow, Some(NSVisualEffectState::Active), None)
+                    .expect("Unsupported platform! 'apply_vibrancy' is only supported on macOS");
+            }
+
+            #[cfg(target_os = "windows")]
+            {
+                apply_acrylic(&win, Some((18, 18, 18, 125))).expect("Unsupported platform! 'apply_blur' is only supported on Windows");
+                win.set_decorations(true).unwrap();
+            }
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
-    let scan = task::spawn(init_index());
+    let scan = tokio::spawn( init_index());
 }
 
 
 
 mod test {
-    use super::*;
 
-    #[test]
-    fn test_resent() {
-        // let mut pro_arc = Arc::clone(&PROCESS);
-        let docs_folder = SHGetKnownFolderPath(
-            &co::KNOWNFOLDERID::Recent,
-            co::KF::DEFAULT,
-            None,
-        ).unwrap();
-    println!("{}", docs_folder);
-    for path in WalkDir::new(docs_folder) {
-        println!("{}", path.unwrap().path().display())
-    }
-    }
 }
 

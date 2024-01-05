@@ -49,19 +49,41 @@ document.oncontextmenu = function (e) {
 
 function update_msg(index) {
     let msg = current_file_msg[index - 1];
-    console.log(msg)
+    // console.log(msg)
     // console.log(msg[0])
     for (let i = 1; i <= 6; i++) {
         let text = "#msg_mini" + i;
+        if (i === 6) {
+            if (msg[2] === "Folder") {
+                $(text).text("无");
+                return;
+            }
+            let num = formatBytes(msg[i - 1]);
+            $(text).text(num);
+            return;
+        }
         $(text).text(msg[i - 1]);
     }
 }
+
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
 
 $(document).ready(function () {
     $("#search_input").change(async function () {
         let str = document.getElementById("search_input").value;
         if (!str) return;
-        console.log(str.toString())
+        // console.log(str.toString())
             
 
         if (!$("#fun1").hasClass("press")) {
@@ -71,12 +93,8 @@ $(document).ready(function () {
             return;
         }
         else {
-            await invoke("search", {target: str}).then(async () => {
-
-                await invoke("get_file").then(async () => {
-                    await add_process();
-                });
-            })
+            invoke("search", {target: str})
+            await add_process();
         }
         // if (window.Worker) console.log("yes")
 
@@ -87,14 +105,16 @@ $(document).ready(function () {
 
         // myWorker.terminate();
     })
-    $(".arrow_row").click(async function (e) {
-        let target = e.target.closest("img");
+    $("#sidebar").click(async function (e) {
+        console.log("fooooold")
+        let target = e.target.id
         let id = target.id.split("_").pop();
-        $(this)
+        $(target)
             .toggleClass("rotate");
-        let items = $(this).parent().next();
+        let a = $(target).parent();
+        let items = $(a).nextAll();
 
-        if ($(this).prop("class").includes("rotate")) {
+        if ($(target).prop("class").includes("rotate")) {
             $(items).slideDown(200);
         } else {
             $(items).slideUp(200);
@@ -139,7 +159,8 @@ $(document).ready(function () {
     //     let path = current_file_msg[id]
     //     access(path);
     //     add_process();
-    // })
+    // // })
+    //
     $("#file_pane").click(function (e) {
         let target = e.target.closest(".file_title");
         $(".select").toggleClass("select");
@@ -150,13 +171,59 @@ $(document).ready(function () {
         update_msg(index);
     })
     $("#file_pane").mousedown(function (e) {
-        if (e.which === 3) {
+        console.log("鼠标按下去了 " + e.which)
+        if (e.which === 3 || e.which === 1) {
             let target = e.target.closest(".file_title");
             $(".select").toggleClass("select");
             $(target).toggleClass("select");
 
             let index = target.id;
+
+            if (!index) return;
+
             update_msg(index)
+        }
+    })
+
+    $("body").click(function (e) {
+        let target = e.target.closest(".fold");
+        $(".press").toggleClass("press");
+        $(target).toggleClass("press");
+
+        let val = $(target).prop("id");
+        if (!val) return
+
+        console.log(val)
+        let list = val.split("_");
+        let id = list[list.length - 1];
+
+        console.log(id);
+        invoke("access", {path: process_path(curren_list[id])}).then(async () => {
+            await add_process();
+        });
+
+    })
+
+
+
+    $("#file_pane").mouseup(function (e) {
+        console.log("这是你想要的" + e.which);
+        if (e.which === 1) {
+            let target = e.target.closest(".file_title");
+            let des = current_file_msg[target.id - 1]
+            let type1 = des[2];
+            let id = $(".select").prop("id");
+            let msg = current_file_msg[id - 1].slice();
+            let type2 = msg[2];
+
+            if (type1 !== "Folder" && type2 !== "Folder") {
+                return;
+            }
+
+            // invoke("_move", {path1: process_path(msg[1]), path2: process_path(des[1])}).then(async () => {
+            //     await refresh();
+            // })
+            console.log("移动成功")
         }
     })
 
@@ -186,6 +253,10 @@ $(document).ready(function () {
             await refresh()
         }
     })
+    //
+    // $("#file_pane").dragLeave(function (e) {
+    //     console.log(e.which);
+    // })
 
 
 
@@ -217,7 +288,7 @@ $(document).ready(function () {
             current_file_msg = [];
             await add_process();
         })
-        $(".breadcrumb").append(creat_breadcomp(msg[0].slice()));
+        // $(".breadcrumb").append(creat_breadcomp(msg[0].slice()));
     })
 
     $("#pre").click(async function () {
@@ -234,12 +305,17 @@ $(document).ready(function () {
         $(".menu").css("visibility", "hidden")
     })
 
-    $("#sidebar").click(async function (e) {
+    $("#disk").click(async function (e) {
 
         $(".fold .press").toggleClass("press");
 
 
-        let target = e.target.closest(".location .tile");
+        let target = e.target.closest(".tile");
+
+        // let classList = target.classList;
+        // if (classList.contains("arrow_row")) {
+        //
+        // }
         if (!target) return;
 
         $(target).toggleClass("press")
@@ -256,9 +332,10 @@ $(document).ready(function () {
         console.log(tile_path)
         let path1 = process_path(path.slice());
 
+        // borad_msg = invoke("current_layer_msg", {path: path1});
         await access(path1).then(async () => await add_process())
         next_path = []
-        pre_path = [[path.slice()]];
+        pre_path = [[path]];
         check_control();
         update_msg_current()
     })
@@ -298,7 +375,7 @@ $(document).ready(function () {
     );
     $(".delete").click(async function () {
         let id = $(".select").prop("id");
-        let msg = current_file_msg[id - 1].slice();
+        let msg = current_file_msg[id - 1] ;
         let type = msg[2];
         let arr = msg[1];
 
@@ -376,6 +453,19 @@ async function refresh() {
         await add_process()
     );
     update_msg_current();
+    $(".file_title").mouseup(function (e) {
+        console.log("这是你想要的" + e.which);
+        if (e.which === 1) {
+            let target = e.target.closest(".file_title");
+            let des = current_file_msg[target.id - 1]
+            let id = $(".select").prop("id");
+            let msg = current_file_msg[id - 1].slice();
+            invoke("move", {path1: process_path(msg[1]), path2: process_path(des[1])}).then(async () => {
+                await refresh();
+            })
+            console.log("移动成功")
+        }
+    })
 }
 
 
@@ -387,7 +477,7 @@ const invoke = window.__TAURI__.invoke;
 
 function process_path(str) {
     if (!str || typeof str === "Array") return
-    console.log("原始 " + str)
+    // console.log("原始 " + str)
     if (!isWindows) {
         return str.split("\u005C");
     }
@@ -451,6 +541,9 @@ function creat_tile(msg) {
 }
 
 async function access(path) {
+    if (!path) {
+        console.log("路径非法" + path);
+    }
     console.log("这是你要访问的路径" + path)
     await invoke('access', {path: path.slice()});
     let name = path.slice()[path.length - 1].split(".")[0];
@@ -481,7 +574,7 @@ function update_msg_current() {
 
 async function change(target) {
     if (!target) return;
-    await invoke("fold", {target});
+    invoke("fold", {target});
 }
 
 async function pre() {
@@ -514,6 +607,8 @@ async function next() {
 
 async function init() {
     await access(pre_path[0])
+    borad_msg = await invoke("current_layer_msg", {path: pre_path[pre_path.length - 1]});
+    update_msg_current();
 }
 
 
@@ -525,12 +620,19 @@ borad_msg = []
 
 copyposition = []
 
+tree_size = 1;
+curren_list = ["", "/Users"];
+
 
 pre_path = [["/Users"]];
 next_path = [];
 read_ui();
 init();
-add_process();
+add_process().then( async () => {
+    await init_layers()
+});
+
+
 
 $(".position .tile").click()
 
@@ -561,6 +663,9 @@ function item(msg) {
         case "Folder": {
             img = `../imgs/dir.png`;
             break;
+        }
+        case "PDF" : {
+            img = "../imgs/pdf.png";
         }
         default: {
             img = `../imgs/file.png`;
@@ -612,4 +717,84 @@ async function init_tiles() {
 async function remove_tiles(target) {
 
 }
+
+
+
+function layer(msg) {
+    let elem = document.createElement("div");
+    $(elem).html("<div class=\"item tile mini-title\">\n" +
+        "                                <div class=\"left_block\">\n" +
+        "                                    <img class='head_img' src=\"./imgs/home.svg\" alt=\"\">\n" +
+        "                                    <div class=\"text tile\"><span class='context_name'>Home</span></div>\n" +
+        "                                </div>\n" +
+        "                                <img  class=\"arrow_row rotate\" src=\"./imgs/Chevron_Down.svg\" alt=\"\">\n" +
+        "                            </div>")
+
+    let name = msg[0];
+    let img = ""
+    switch (msg[2]) {
+        case "Folder": {
+            img = `../imgs/dir.png`;
+            $(elem).find(".head_img").css("width", "30px");
+            break;
+        }
+        case "PDF" : {
+            img = "../imgs/pdf.png";
+            $(elem).find(".arrow_row").css("display", "none");
+            $(elem).find(".head_img").css("width", "20px");
+            break;
+        }
+        default: {
+            $(elem).find(".arrow_row").css("display", "none");
+            $(elem).find(".head_img").css("width", "20px");
+            img = `../imgs/file.png`;
+        }
+    }
+    let id = "context_" + ++tree_size;
+    $(elem).find(".context_name").text(name);
+    $(elem).find(".head_img").prop("src", img);
+    $(elem).prop("id", id).prop("class", "fold tiles");
+    return elem;
+
+}
+//
+async function access_layer(path, current) {
+    invoke("access1", {path: process_path(path)})
+
+    let times = 0;
+    let record = tree_size;
+
+    while (1) {
+        console.log("开始了")
+        let list = await invoke("get_file1");
+        if (!list) {
+            times++;
+        } else {
+            curren_list.push(list[1].concat());
+            console.log(curren_list)
+            let hello = layer(list);
+            if (!hello) continue;
+            let id1 = "#context_" + current;
+            $(id1).append(hello);
+            console.log("添加成功")
+            times = 0;
+        }
+        if (times > 3000) break;
+        console.log(list)
+
+
+    }
+    // console.log("完成一个节点  " + record + "      " +  tree_size)
+    if (current === tree_size) return;
+
+    if (current > 100) return
+    await access_layer(curren_list[current + 1], current + 1)
+}
+// [1, 2, 3]
+// 3
+
+async function init_layers() {
+    await access_layer(curren_list[tree_size], tree_size)
+}
+
 

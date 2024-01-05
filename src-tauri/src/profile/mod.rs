@@ -86,10 +86,9 @@ impl Profile {
 
     pub fn save(&self) {
         let ser = serde_json::to_string(self).expect("序列化失败");
-        fs::create_dir_all("../profile").expect("profile文件夹创建失败");
-
-        let file_path = Path::new("../profile").join("profile.json");
-        let mut file = File::create(file_path).expect("profile文件创建成功");
+        fs::create_dir_all("../../../profile").expect("profile文件夹创建失败");
+        let file_path = Path::new("../../../profile").join("profile.json");
+        let mut file = File::create(file_path).expect("profile文件创建失败");
         writeln!(file, "{}", ser).expect("写入序列化数据失败");
     }
 
