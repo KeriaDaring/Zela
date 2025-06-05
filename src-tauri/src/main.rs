@@ -244,27 +244,38 @@ fn search(target: String) {
         });
 }
 
-fn path_build(list: Vec<String>) -> PathBuf {
+fn path_build(mut list: Vec<String>) -> PathBuf {
     println!("source {:?}", list);
     let mut path = if cfg!(target_os = "macos") {
         PathBuf::from("/")
     } else {
         PathBuf::new()
     };
-    let mut stage = false;
 
-    for i in list {
-        if !stage {
-            path.push(i.clone());
-            if cfg!(target_os = "windows") {
-                path.push("\\");
+    if let Some(first) = list.first() {
+        #[cfg(target_os = "windows")]
+        {
+            if first.ends_with(':') {
+                path.push(format!("{}\\", first));
+            } else {
+                path.push(first);
             }
-            stage = true;
-            continue
         }
-        path.push(i.clone());
+        #[cfg(not(target_os = "windows"))]
+        {
+            path.push(first);
+        }
     }
-    println!("合并完成了 {:?}", path.clone());
+
+    // remove the first element which is already pushed
+    if !list.is_empty() {
+        list.remove(0);
+    }
+
+    for segment in list {
+        path.push(segment);
+    }
+    println!("合并完成了 {:?}", path);
     path
 }
 
